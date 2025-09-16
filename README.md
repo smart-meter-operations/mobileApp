@@ -30,6 +30,7 @@ src/
 │   ├── SuccessScreen.js # Success confirmation
 │   ├── DashboardScreen.js # Main dashboard with animated header
 │   ├── CaptureScreen.js # Camera capture with GPS & network detection
+│   ├── MapScreen.js     # GIS map with infrastructure visualization
 │   ├── UserProfileScreen.js # User profile with sync stats
 │   └── index.js         # Export all screens
 ├── services/            # API and data services
@@ -64,6 +65,12 @@ src/
 - **GPS Coordinates**: Precise location data for each capture
 - **Network Detection**: Real-time bandwidth and connection quality analysis
 - **Metadata Storage**: Complete capture context saved with images
+
+### 🗺️ GIS Map Visualization
+- **Interactive Map**: OpenStreetMap integration with user location
+- **Infrastructure Display**: Transformers, Poles, and Feeders visualization
+- **Toggle Controls**: Show/hide different infrastructure types
+- **Custom Icons**: Relevant icons for each infrastructure type
 
 ### 🗄️ Offline-First Architecture
 - **SQLite Database**: Robust local data storage with sync capabilities
@@ -165,6 +172,24 @@ if (syncResult.success) {
 2. **Update API_CONFIG**: Change `baseUrl` in `src/constants/index.js`
 3. **Implement Sync Logic**: Add API calls to sync local data
 4. **Token Management**: Integrate Firebase auth tokens with API calls
+
+## Map Feature Configuration
+
+### OpenStreetMap Integration
+
+The map feature now uses OpenStreetMap instead of Google Maps, which means:
+
+1. **No API Keys Required**: OpenStreetMap is free and doesn't require API keys
+2. **Privacy Friendly**: No data is sent to Google
+3. **Community Driven**: Map data is maintained by the OpenStreetMap community
+
+### Map Screen Features
+- User location tracking
+- Infrastructure markers (Transformers, Poles, Feeders)
+- Toggle visibility for each infrastructure type
+- Custom icons for different infrastructure types
+- Error handling and fallback UI
+- Map type switching (OSM/None)
 
 ## Capture Feature Usage
 

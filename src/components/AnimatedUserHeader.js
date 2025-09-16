@@ -94,19 +94,6 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
     }
   };
 
-  const getSyncStatusColor = () => {
-    switch (syncStatus) {
-      case 'online':
-        return COLORS.success;
-      case 'syncing':
-        return COLORS.warning;
-      case 'offline':
-        return COLORS.error;
-      default:
-        return COLORS.textSecondary;
-    }
-  };
-
   const getSyncStatusIcon = () => {
     switch (syncStatus) {
       case 'online':
@@ -117,6 +104,32 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
         return 'cloud-offline';
       default:
         return 'help-circle';
+    }
+  };
+
+  const getSyncStatusLabel = () => {
+    switch (syncStatus) {
+      case 'online':
+        return 'Synced';
+      case 'syncing':
+        return 'Syncing…';
+      case 'offline':
+        return 'Offline';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getSyncColors = () => {
+    switch (syncStatus) {
+      case 'online':
+        return { bg: COLORS.successLight, text: COLORS.success };
+      case 'syncing':
+        return { bg: COLORS.warningLight, text: COLORS.warning };
+      case 'offline':
+        return { bg: COLORS.errorLight, text: COLORS.error };
+      default:
+        return { bg: COLORS.borderLight, text: COLORS.textSecondary };
     }
   };
 
@@ -191,16 +204,22 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Sync Status Indicator - Right Side - Circular Icon */}
+      {/* Sync Status Pill - Right Side */}
       <TouchableOpacity 
-        style={[styles.syncContainer, { backgroundColor: getSyncStatusColor() }]}
+        style={[
+          styles.syncContainer,
+          { backgroundColor: getSyncColors().bg }
+        ]}
         activeOpacity={0.8}
       >
         <Ionicons 
           name={getSyncStatusIcon()} 
-          size={20} 
-          color="white"
+          size={16} 
+          color={getSyncColors().text}
         />
+        <Text style={[styles.syncText, { color: getSyncColors().text }]}>
+          {getSyncStatusLabel()}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -214,34 +233,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     paddingTop: SPACING.lg,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.headerBackground,
   },
   syncContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    paddingHorizontal: SPACING.md,
+    height: 32,
+    borderRadius: BORDER_RADIUS.lg,
   },
   headerContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.xl,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     alignSelf: 'flex-start', // Align to left side
   },
   headerContent: {
@@ -265,14 +268,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: COLORS.white,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
   },
   avatarText: {
     fontSize: TYPOGRAPHY.fontSizes.lg,
@@ -282,17 +277,22 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.md,
   },
   welcomeText: {
-    fontSize: TYPOGRAPHY.fontSizes.md,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textPrimary,
+    color: COLORS.textWhite,
   },
   roleText: {
     fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textSecondary,
+    color: COLORS.textLight,
     marginTop: 2,
   },
   expandIndicator: {
     marginLeft: SPACING.xs,
+  },
+  syncText: {
+    marginLeft: 6,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 
 // Mock data for transformers, poles, and feeders
@@ -33,6 +33,8 @@ export default function MapScreen() {
   const [showTransformers, setShowTransformers] = useState(true);
   const [showPoles, setShowPoles] = useState(true);
   const [showFeeders, setShowFeeders] = useState(true);
+  const [mapError, setMapError] = useState(null);
+  const [mapType, setMapType] = useState('openstreetmap');
 
   // In a real app, you would get the user's actual location using expo-location
   useEffect(() => {
@@ -52,15 +54,57 @@ export default function MapScreen() {
     setShowFeeders(!showFeeders);
   };
 
+  const handleMapError = (error) => {
+    console.error('Map error:', error);
+    setMapError(error.message || 'Failed to load map');
+  };
+
+  const switchToGoogleMaps = () => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${userLocation.latitude},${userLocation.longitude}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Unable to open Google Maps');
+    });
+  };
+
+  // Fallback UI for when map fails to load
+  if (mapError) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorTitle}>Map Loading Error</Text>
+        <Text style={styles.errorText}>{mapError}</Text>
+        <Text style={styles.errorHint}>
+          Try switching to Google Maps or check your internet connection.
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
+          onPress={() => setMapError(null)}
+        >
+          <Text style={styles.actionText}>Retry</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#4285F4' }]}
+          onPress={switchToGoogleMaps}
+        >
+          <Text style={styles.actionText}>Open in Google Maps</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <MapView
-        provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_DEFAULT}
         style={styles.map}
         region={userLocation}
         showsUserLocation={true}
         showsMyLocationButton={true}
+        onError={handleMapError}
+        onMapReady={() => console.log('Map is ready')}
       >
+        
         {/* User Location Marker */}
         <Marker
           coordinate={{
@@ -173,6 +217,27 @@ export default function MapScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Map Type Switcher */}
+      <View style={styles.mapTypeContainer}>
+        <TouchableOpacity 
+          style={[styles.mapTypeButton, { backgroundColor: mapType === 'openstreetmap' ? COLORS.primary : COLORS.background }]}
+          onPress={() => setMapType('openstreetmap')}
+        >
+          <Text style={[styles.mapTypeText, { color: mapType === 'openstreetmap' ? COLORS.white : COLORS.text }]}>
+            OSM
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.mapTypeButton, { backgroundColor: mapType === 'none' ? COLORS.primary : COLORS.background }]}
+          onPress={() => setMapType('none')}
+        >
+          <Text style={[styles.mapTypeText, { color: mapType === 'none' ? COLORS.white : COLORS.text }]}>
+            None
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -206,7 +271,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   toggleText: {
-    ...TYPOGRAPHY.fontWeights.semibold,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
     fontSize: TYPOGRAPHY.fontSizes.sm,
     color: COLORS.white,
   },
@@ -222,5 +287,65 @@ const styles = StyleSheet.create({
   markerIcon: {
     fontSize: 16,
     color: COLORS.white,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+    backgroundColor: COLORS.background,
+  },
+  errorTitle: {
+    fontSize: TYPOGRAPHY.fontSizes.xl,
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    color: COLORS.error,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+  errorHint: {
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+  },
+  actionButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    width: '80%',
+    alignItems: 'center',
+  },
+  actionText: {
+    color: COLORS.white,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
+  mapTypeContainer: {
+    position: 'absolute',
+    top: SPACING.lg,
+    right: SPACING.lg,
+    flexDirection: 'row',
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  mapTypeButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+  },
+  mapTypeText: {
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
   },
 });
