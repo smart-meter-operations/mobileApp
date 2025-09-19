@@ -81,6 +81,99 @@ npm run android
 npm run web
 ```
 
+## Building the Application
+
+### Setting up EAS CLI for Building APK
+
+1. Install EAS CLI globally:
+
+```bash
+npm install -g eas-cli
+```
+
+2. Log in to your Expo account:
+
+```bash
+eas login
+```
+
+3. Initialize EAS for your project:
+
+```bash
+eas init
+```
+
+4. Configure build settings in `eas.json`:
+
+```json
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
+```
+
+5. Update `app.json` with Android package information:
+
+```json
+{
+  "expo": {
+    // ... other settings
+    "android": {
+      "package": "com.yourcompany.smartmeteroperations",
+      "versionCode": 1
+    }
+    // ... other settings
+  }
+}
+```
+
+### Building Android APK
+
+#### For Development:
+```bash
+eas build --platform android --profile development
+```
+
+#### For Preview:
+```bash
+eas build --platform android --profile preview
+```
+
+#### For Production:
+```bash
+eas build --platform android --profile production
+```
+
+You can also use npx if you haven't installed EAS CLI globally:
+
+```bash
+npx eas-cli build --platform android --profile preview
+```
+
+The build will be queued and you'll receive a link to download the APK once it's complete.
+
 ## Testing the Application
 
 ### Running Unit Tests

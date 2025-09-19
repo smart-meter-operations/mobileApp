@@ -15,13 +15,21 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.swavedooja.smartmeteroperations",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4c336566-3c5c-4db6-a68d-538e0e8b95c0"
+      }
+    },
+    "owner": "swavedooja"
   }
 }
