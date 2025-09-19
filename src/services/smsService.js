@@ -2,7 +2,7 @@
 export class SmsService {
   static async sendOTP(phoneNumber) {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    
+
     try {
       const response = await fetch('https://textbelt.com/text', {
         method: 'POST',
@@ -15,9 +15,9 @@ export class SmsService {
           key: 'textbelt', // Free quota
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         return { success: true, otp };
       } else {
@@ -29,7 +29,7 @@ export class SmsService {
       return { success: true, otp: '1234' };
     }
   }
-  
+
   static async resendOTP(phoneNumber) {
     return this.sendOTP(phoneNumber);
   }

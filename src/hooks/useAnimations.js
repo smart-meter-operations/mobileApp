@@ -7,7 +7,7 @@ export const useEntranceAnimation = (duration = ANIMATION.slow) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
-  
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -24,32 +24,34 @@ export const useEntranceAnimation = (duration = ANIMATION.slow) => {
         toValue: 1,
         duration: duration + 100,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   }, []);
-  
+
   return {
     fadeAnim,
     slideAnim,
     scaleAnim,
     animatedStyle: {
       opacity: fadeAnim,
-      transform: [
-        { translateY: slideAnim },
-        { scale: scaleAnim }
-      ],
+      transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
     },
   };
 };
 
 // Hook for staggered animations
-export const useStaggeredAnimation = (count, delay = ANIMATION.stagger.card) => {
+export const useStaggeredAnimation = (
+  count,
+  delay = ANIMATION.stagger.card
+) => {
   const animations = useRef(
-    Array(count).fill(0).map(() => new Animated.Value(0))
+    Array(count)
+      .fill(0)
+      .map(() => new Animated.Value(0))
   ).current;
-  
+
   useEffect(() => {
-    const animationSequence = animations.map((anim, index) => 
+    const animationSequence = animations.map((anim, index) =>
       Animated.timing(anim, {
         toValue: 1,
         duration: ANIMATION.normal * 2,
@@ -57,17 +59,17 @@ export const useStaggeredAnimation = (count, delay = ANIMATION.stagger.card) => 
         useNativeDriver: true,
       })
     );
-    
+
     Animated.stagger(delay, animationSequence).start();
   }, []);
-  
+
   return animations;
 };
 
 // Hook for scale animation on press
 export const useScaleAnimation = () => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  
+
   const animatePress = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -79,10 +81,10 @@ export const useScaleAnimation = () => {
         toValue: 1,
         duration: ANIMATION.fast,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   };
-  
+
   return {
     scaleAnim,
     animatePress,
@@ -95,7 +97,7 @@ export const useScaleAnimation = () => {
 // Hook for bounce animation
 export const useBounceAnimation = (autoStart = false) => {
   const bounceAnim = useRef(new Animated.Value(0)).current;
-  
+
   const startBounce = () => {
     Animated.spring(bounceAnim, {
       toValue: 1,
@@ -104,13 +106,13 @@ export const useBounceAnimation = (autoStart = false) => {
       useNativeDriver: true,
     }).start();
   };
-  
+
   useEffect(() => {
     if (autoStart) {
       startBounce();
     }
   }, [autoStart]);
-  
+
   return {
     bounceAnim,
     startBounce,

@@ -1,14 +1,20 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import {
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  signInWithCredential,
+} from 'firebase/auth';
 
 // Firebase configuration - TO BE REPLACED WITH ACTUAL CREDENTIALS
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: 'YOUR_API_KEY_HERE',
+  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+  projectId: 'YOUR_PROJECT_ID',
+  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID',
 };
 
 class FirebaseService {
@@ -47,7 +53,7 @@ class FirebaseService {
             },
             'expired-callback': () => {
               console.log('reCAPTCHA expired');
-            }
+            },
           },
           this.auth
         );
@@ -67,8 +73,8 @@ class FirebaseService {
       }
 
       // Format phone number for Indian numbers
-      const formattedPhone = phoneNumber.startsWith('+91') 
-        ? phoneNumber 
+      const formattedPhone = phoneNumber.startsWith('+91')
+        ? phoneNumber
         : `+91${phoneNumber}`;
 
       console.log('Sending OTP to:', formattedPhone);
@@ -81,18 +87,18 @@ class FirebaseService {
       );
 
       this.verificationId = confirmationResult.verificationId;
-      
+
       return {
         success: true,
         verificationId: this.verificationId,
-        message: 'OTP sent successfully'
+        message: 'OTP sent successfully',
       };
     } catch (error) {
       console.error('Send OTP failed:', error);
       return {
         success: false,
         error: error.message,
-        message: 'Failed to send OTP'
+        message: 'Failed to send OTP',
       };
     }
   }
@@ -119,14 +125,14 @@ class FirebaseService {
       return {
         success: true,
         user: result.user,
-        message: 'OTP verified successfully'
+        message: 'OTP verified successfully',
       };
     } catch (error) {
       console.error('OTP verification failed:', error);
       return {
         success: false,
         error: error.message,
-        message: 'Invalid OTP or verification failed'
+        message: 'Invalid OTP or verification failed',
       };
     }
   }

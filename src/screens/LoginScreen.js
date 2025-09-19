@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { SafeAreaView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  SafeAreaView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 // Import components and services
@@ -13,7 +18,7 @@ import { Text, View, Animated } from 'react-native';
 
 export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
-  
+
   // Custom hooks
   const isKeyboardVisible = useKeyboard();
   const { animatedStyle } = useEntranceAnimation();
@@ -33,7 +38,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await execute(async () => {
         const result = await SmsService.sendOTP(phoneNumber);
-        
+
         if (result.success) {
           Alert.alert(
             'OTP Sent',
@@ -42,12 +47,12 @@ export default function LoginScreen({ navigation }) {
               {
                 text: 'OK',
                 onPress: () => {
-                  navigation.navigate(SCREENS.OTP, { 
+                  navigation.navigate(SCREENS.OTP, {
                     phoneNumber: formatPhoneNumber(phoneNumber),
-                    generatedOTP: result.otp 
+                    generatedOTP: result.otp,
                   });
-                }
-              }
+                },
+              },
             ]
           );
         }
@@ -60,10 +65,10 @@ export default function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={layoutStyles.container}>
       <StatusBar style="light" />
-      
+
       <AppHeader />
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
@@ -73,7 +78,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={textStyles.subtitle}>
               Please enter your phone number to login your account.
             </Text>
-            
+
             <Input
               placeholder="+91 8981675554"
               value={phoneNumber}
@@ -81,15 +86,15 @@ export default function LoginScreen({ navigation }) {
               keyboardType="phone-pad"
               maxLength={15}
             />
-            
-            <Button 
+
+            <Button
               title="Proceed"
               onPress={handleProceed}
               disabled={loading}
               loading={loading}
             />
           </View>
-          
+
           <Footer visible={!isKeyboardVisible} />
         </Animated.View>
       </KeyboardAvoidingView>

@@ -4,15 +4,28 @@ import { dashboardStyles } from '../styles';
 import { SCREENS } from '../constants';
 
 const BottomTabButton = ({ title, icon, isActive, onPress }) => (
-  <TouchableOpacity 
-    style={[dashboardStyles.tabButton, isActive && dashboardStyles.activeTabButton]} 
+  <TouchableOpacity
+    style={[
+      dashboardStyles.tabButton,
+      isActive && dashboardStyles.activeTabButton,
+    ]}
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <Text style={[dashboardStyles.tabIcon, isActive && dashboardStyles.activeTabIcon]}>
+    <Text
+      style={[
+        dashboardStyles.tabIcon,
+        isActive && dashboardStyles.activeTabIcon,
+      ]}
+    >
       {icon}
     </Text>
-    <Text style={[dashboardStyles.tabText, isActive && dashboardStyles.activeTabText]}>
+    <Text
+      style={[
+        dashboardStyles.tabText,
+        isActive && dashboardStyles.activeTabText,
+      ]}
+    >
       {title}
     </Text>
   </TouchableOpacity>
@@ -35,12 +48,12 @@ const BottomNavigation = ({ activeTab, onTabPress, tabs = [], navigation }) => {
   return (
     <View style={dashboardStyles.bottomNav}>
       {tabs.map((tab) => (
-        <BottomTabButton 
+        <BottomTabButton
           key={tab.name}
-          title={tab.title} 
-          icon={tab.icon} 
-          isActive={activeTab === tab.name} 
-          onPress={() => handleTabPress(tab.name)} 
+          title={tab.title}
+          icon={tab.icon}
+          isActive={activeTab === tab.name}
+          onPress={() => handleTabPress(tab.name)}
         />
       ))}
     </View>

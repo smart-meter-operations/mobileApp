@@ -4,160 +4,61 @@ import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 
 // Dashboard specific styles
 export const dashboardStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight + 10 : 0,
+  activeTabText: {
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
   },
-  safeArea: {
+  avatar: {
+    alignItems: 'center',
+    backgroundColor: COLORS.borderLight,
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginRight: SPACING.md,
+    width: 48,
+  },
+  avatarText: {
+    fontSize: TYPOGRAPHY.fontSizes.xl,
+  },
+  bottomNav: {
+    backgroundColor: COLORS.surface,
+    borderTopColor: COLORS.borderLight,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    paddingBottom: Platform.OS === 'android' ? SPACING.lg + 10 : SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingTop: SPACING.md,
+  },
+  cardTouchable: {
     flex: 1,
-    paddingBottom: 10,
+  },
+  container: {
+    backgroundColor: COLORS.background,
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? Constants.statusBarHeight + 10 : 0,
   },
   content: {
     flex: 1,
   },
   header: {
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
     paddingTop: SPACING.xl,
-    backgroundColor: COLORS.surface,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.borderLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  avatarText: {
-    fontSize: TYPOGRAPHY.fontSizes.xl,
-  },
-  userDetails: {
-    flex: 1,
-  },
-  welcomeText: {
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textPrimary,
-  },
-  roleText: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 6,
-    backgroundColor: COLORS.borderLight,
-    borderRadius: BORDER_RADIUS.lg,
-  },
-  statusText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textSecondary,
-    fontWeight: TYPOGRAPHY.fontWeights.medium,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.lg,
-    gap: SPACING.md,
-  },
-  statCard: {
-    flex: 1,
-    padding: SPACING.lg,
-    borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: COLORS.surface,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  surveyCard: {
-    backgroundColor: COLORS.surface,
   },
   installationCard: {
     backgroundColor: COLORS.headerBackground,
   },
-  statHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  statTitle: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textSecondary,
-    letterSpacing: 0.5,
-  },
-  statIcon: {
-    fontSize: TYPOGRAPHY.fontSizes.xl,
-  },
-  statNumber: {
-    fontSize: TYPOGRAPHY.fontSizes['5xl'],
-    fontWeight: TYPOGRAPHY.fontWeights.bold,
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.lg,
-  },
-  statDetails: {
-    gap: SPACING.sm,
-  },
-  statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: SPACING.sm,
-  },
-  statText: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textSecondary,
-  },
-  statCount: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textPrimary,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-    backgroundColor: COLORS.background,
-  },
-  tableHeaderText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textSecondary,
-    letterSpacing: 0.5,
-  },
   newInstallationButton: {
-    margin: SPACING.xl,
+    alignItems: 'center',
     backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.lg,
+    elevation: 8,
+    margin: SPACING.xl,
     paddingVertical: SPACING.lg,
-    alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: {
       width: 0,
@@ -165,25 +66,107 @@ export const dashboardStyles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
   },
   newInstallationText: {
     color: COLORS.textWhite,
     fontSize: TYPOGRAPHY.fontSizes.lg,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
   },
-  bottomNav: {
-    flexDirection: 'row',
+  roleText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginTop: 2,
+  },
+  safeArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+  statCard: {
     backgroundColor: COLORS.surface,
-    paddingTop: SPACING.md,
-    paddingBottom: Platform.OS === 'android' ? SPACING.lg + 10 : SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.xl,
+    elevation: 4,
+    flex: 1,
+    padding: SPACING.lg,
+    shadowColor: COLORS.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  statCount: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
+  statDetails: {
+    gap: SPACING.sm,
+  },
+  statDot: {
+    borderRadius: 4,
+    height: 8,
+    marginRight: SPACING.sm,
+    width: 8,
+  },
+  statHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  statIcon: {
+    fontSize: TYPOGRAPHY.fontSizes.xl,
+  },
+  statLabel: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginBottom: SPACING.lg,
+  },
+  statNumber: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes['5xl'],
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    marginBottom: 4,
+  },
+  statRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  statText: {
+    color: COLORS.textSecondary,
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+  },
+  statTitle: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    letterSpacing: 0.5,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
+  },
+  statusBadge: {
+    backgroundColor: COLORS.borderLight,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 6,
+  },
+  statusText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
+  },
+  surveyCard: {
+    backgroundColor: COLORS.surface,
   },
   tabButton: {
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
     paddingVertical: SPACING.sm,
   },
   tabIcon: {
@@ -191,15 +174,32 @@ export const dashboardStyles = StyleSheet.create({
     marginBottom: 4,
   },
   tabText: {
+    color: COLORS.textMuted,
     fontSize: TYPOGRAPHY.fontSizes.xs,
     fontWeight: TYPOGRAPHY.fontWeights.medium,
-    color: COLORS.textMuted,
   },
-  activeTabText: {
-    color: COLORS.primary,
+  tableHeader: {
+    backgroundColor: COLORS.background,
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+  },
+  tableHeaderText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    letterSpacing: 0.5,
   },
-  cardTouchable: {
+  userDetails: {
     flex: 1,
+  },
+  userInfo: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  welcomeText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
   },
 });

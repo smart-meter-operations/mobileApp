@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Linking,
-  Platform
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -29,14 +29,14 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
   const initializeAuthentication = async () => {
     try {
       setLoading(true);
-      
+
       // Initialize phone unlock service
       await PhoneUnlockService.initialize();
-      
+
       // Get authentication info
       const info = await PhoneUnlockService.getAuthenticationInfo();
       setAuthInfo(info);
-      
+
       // Check if already recently authenticated
       if (info.recentlyAuthenticated) {
         handleAuthenticationSuccess();
@@ -47,7 +47,6 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
       setTimeout(() => {
         authenticateUser();
       }, 1000);
-      
     } catch (error) {
       console.error('Initialize authentication failed:', error);
       setError('Failed to initialize authentication');
@@ -60,9 +59,9 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await PhoneUnlockService.authenticate();
-      
+
       if (result.success) {
         handleAuthenticationSuccess();
       } else {
@@ -89,8 +88,8 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Skip',
-          onPress: () => navigation.navigate('Success')
-        }
+          onPress: () => navigation.navigate('Success'),
+        },
       ]
     );
   };
@@ -106,28 +105,36 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
           onPress: () => {
             // For Android, open security settings
             if (Platform.OS === 'android') {
-              Linking.openURL('android.settings.SECURITY_SETTINGS').catch(() => {
-                Alert.alert('Info', 'Please manually go to Settings > Security > Biometrics to set up authentication.');
-              });
+              Linking.openURL('android.settings.SECURITY_SETTINGS').catch(
+                () => {
+                  Alert.alert(
+                    'Info',
+                    'Please manually go to Settings > Security > Biometrics to set up authentication.'
+                  );
+                }
+              );
             } else {
               // For iOS, open Face ID & Passcode or Touch ID & Passcode settings
               Linking.openURL('app-settings:').catch(() => {
-                Alert.alert('Info', 'Please manually go to Settings > Face ID & Passcode to set up authentication.');
+                Alert.alert(
+                  'Info',
+                  'Please manually go to Settings > Face ID & Passcode to set up authentication.'
+                );
               });
             }
-          }
+          },
         },
         {
           text: 'Use PIN/Pattern',
-          onPress: () => authenticateUser()
-        }
+          onPress: () => authenticateUser(),
+        },
       ]
     );
   };
 
   const getAuthMethodText = () => {
     if (!authInfo) return 'Authentication';
-    
+
     if (authInfo.biometricSupport.isSupported) {
       const types = authInfo.availableTypes;
       if (types.includes('fingerprint')) return 'Fingerprint';
@@ -141,7 +148,7 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
 
   const getAuthIcon = () => {
     if (!authInfo) return 'lock-closed';
-    
+
     if (authInfo.biometricSupport.isSupported) {
       const types = authInfo.availableTypes;
       if (types.includes('fingerprint')) return 'finger-print';
@@ -164,10 +171,7 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Phone Unlock</Text>
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={handleSkip}
-          >
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
         </View>
@@ -176,24 +180,21 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
         <View style={styles.mainContent}>
           {/* Icon */}
           <View style={styles.iconContainer}>
-            <Ionicons 
-              name={getAuthIcon()} 
-              size={80} 
-              color={loading ? COLORS.primary : COLORS.textSecondary} 
+            <Ionicons
+              name={getAuthIcon()}
+              size={80}
+              color={loading ? COLORS.primary : COLORS.textSecondary}
             />
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>
-            Unlock with {getAuthMethodText()}
-          </Text>
+          <Text style={styles.title}>Unlock with {getAuthMethodText()}</Text>
 
           {/* Description */}
           <Text style={styles.description}>
             {authInfo?.biometricSupport.isSupported
               ? `Use your ${getAuthMethodText().toLowerCase()} to verify it's really you.`
-              : 'Use your device PIN or pattern to verify it\'s really you.'
-            }
+              : "Use your device PIN or pattern to verify it's really you."}
           </Text>
 
           {/* Loading or Error State */}
@@ -221,27 +222,39 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
           )}
 
           {/* Enrollment Options */}
-          {authInfo && authInfo.biometricSupport.hasHardware && !authInfo.biometricSupport.isEnrolled && (
-            <View style={styles.enrollmentContainer}>
-              <Ionicons name="information-circle" size={24} color={COLORS.warning} />
-              <Text style={styles.enrollmentTitle}>Biometric Not Set Up</Text>
-              <Text style={styles.enrollmentText}>
-                Your device supports biometric authentication, but it's not set up yet.
-              </Text>
-              <Button
-                title="Set Up Biometrics"
-                onPress={handleEnrollBiometrics}
-                style={styles.enrollmentButton}
-              />
-            </View>
-          )}
+          {authInfo &&
+            authInfo.biometricSupport.hasHardware &&
+            !authInfo.biometricSupport.isEnrolled && (
+              <View style={styles.enrollmentContainer}>
+                <Ionicons
+                  name="information-circle"
+                  size={24}
+                  color={COLORS.warning}
+                />
+                <Text style={styles.enrollmentTitle}>Biometric Not Set Up</Text>
+                <Text style={styles.enrollmentText}>
+                  Your device supports biometric authentication, but it&apos;s
+                  not set up yet.
+                </Text>
+                <Button
+                  title="Set Up Biometrics"
+                  onPress={handleEnrollBiometrics}
+                  style={styles.enrollmentButton}
+                />
+              </View>
+            )}
 
           {/* No Biometric Hardware */}
           {authInfo && !authInfo.biometricSupport.hasHardware && (
             <View style={styles.infoContainer}>
-              <Ionicons name="information-circle" size={20} color={COLORS.info} />
+              <Ionicons
+                name="information-circle"
+                size={20}
+                color={COLORS.info}
+              />
               <Text style={styles.infoText}>
-                Your device doesn't support biometric authentication. Using device PIN/Pattern instead.
+                Your device doesn&apos;t support biometric authentication. Using
+                device PIN/Pattern instead.
               </Text>
             </View>
           )}
@@ -259,153 +272,153 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  backButton: {
+    padding: SPACING.sm,
+  },
   container: {
-    flex: 1,
     backgroundColor: COLORS.background,
+    flex: 1,
   },
   content: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
+  description: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.md,
+    lineHeight: 24,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
+  },
+  enrollmentButton: {
+    backgroundColor: COLORS.warning,
+    minWidth: 160,
+  },
+  enrollmentContainer: {
     alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderColor: COLORS.warning,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    marginTop: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
+  },
+  enrollmentText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.md,
+    lineHeight: 20,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+  },
+  enrollmentTitle: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.sm,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    backgroundColor: COLORS.errorLight,
+    borderRadius: BORDER_RADIUS.md,
+    flexDirection: 'row',
+    marginVertical: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  errorText: {
+    color: COLORS.error,
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSizes.md,
+    marginLeft: SPACING.sm,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
+  },
+  footerText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    textAlign: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderBottomColor: COLORS.borderLight,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    backgroundColor: COLORS.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  backButton: {
-    padding: SPACING.sm,
   },
   headerTitle: {
+    color: COLORS.text,
     fontSize: TYPOGRAPHY.fontSizes.xl,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.text,
-  },
-  skipButton: {
-    padding: SPACING.sm,
-  },
-  skipText: {
-    fontSize: TYPOGRAPHY.fontSizes.md,
-    color: COLORS.primary,
-    fontWeight: TYPOGRAPHY.fontWeights.medium,
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
   },
   iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.surface,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    backgroundColor: COLORS.surface,
+    borderRadius: 60,
     elevation: 4,
+    height: 120,
+    justifyContent: 'center',
+    marginBottom: SPACING.xl,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    width: 120,
   },
-  title: {
-    fontSize: TYPOGRAPHY.fontSizes['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeights.bold,
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: SPACING.lg,
+  infoContainer: {
+    alignItems: 'center',
+    backgroundColor: COLORS.warningLight,
+    borderRadius: BORDER_RADIUS.md,
+    flexDirection: 'row',
+    marginTop: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
   },
-  description: {
-    fontSize: TYPOGRAPHY.fontSizes.md,
-    color: COLORS.textSecondary,
+  infoText: {
+    color: COLORS.info,
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    marginLeft: SPACING.sm,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: SPACING.xl,
   },
   loadingContainer: {
     alignItems: 'center',
     marginVertical: SPACING.xl,
   },
   loadingText: {
-    fontSize: TYPOGRAPHY.fontSizes.md,
     color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.md,
     marginTop: SPACING.md,
   },
-  errorContainer: {
-    flexDirection: 'row',
+  mainContent: {
     alignItems: 'center',
-    backgroundColor: COLORS.errorLight,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginVertical: SPACING.lg,
-  },
-  errorText: {
-    fontSize: TYPOGRAPHY.fontSizes.md,
-    color: COLORS.error,
-    marginLeft: SPACING.sm,
     flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.xl,
   },
   retryButton: {
     marginTop: SPACING.lg,
     minWidth: 120,
   },
-  infoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.warningLight,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginTop: SPACING.xl,
+  skipButton: {
+    padding: SPACING.sm,
   },
-  infoText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.info,
-    marginLeft: SPACING.sm,
-    flex: 1,
-    textAlign: 'center',
-  },
-  enrollmentContainer: {
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
-    marginTop: SPACING.xl,
-    borderWidth: 1,
-    borderColor: COLORS.warning,
-  },
-  enrollmentTitle: {
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.text,
-    marginTop: SPACING.sm,
-    marginBottom: SPACING.sm,
-  },
-  enrollmentText: {
+  skipText: {
+    color: COLORS.primary,
     fontSize: TYPOGRAPHY.fontSizes.md,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
+  },
+  title: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSizes['2xl'],
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
     marginBottom: SPACING.lg,
-  },
-  enrollmentButton: {
-    backgroundColor: COLORS.warning,
-    minWidth: 160,
-  },
-  footer: {
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.xl,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
 });

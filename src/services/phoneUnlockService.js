@@ -23,18 +23,18 @@ class PhoneUnlockService {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      
+
       return {
         hasHardware,
         isEnrolled,
-        isSupported: hasHardware && isEnrolled
+        isSupported: hasHardware && isEnrolled,
       };
     } catch (error) {
       console.error('Biometric support check failed:', error);
       return {
         hasHardware: false,
         isEnrolled: false,
-        isSupported: false
+        isSupported: false,
       };
     }
   }
@@ -42,10 +42,11 @@ class PhoneUnlockService {
   // Get available authentication types
   async getAvailableAuthenticationTypes() {
     try {
-      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const types =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
       const authTypes = [];
 
-      types.forEach(type => {
+      types.forEach((type) => {
         switch (type) {
           case LocalAuthentication.AuthenticationType.FINGERPRINT:
             authTypes.push('fingerprint');
@@ -70,12 +71,12 @@ class PhoneUnlockService {
   async authenticateWithBiometrics() {
     try {
       const biometricSupport = await this.isBiometricSupported();
-      
+
       if (!biometricSupport.isSupported) {
         return {
           success: false,
           error: 'Biometric authentication not available',
-          fallbackRequired: true
+          fallbackRequired: true,
         };
       }
 
@@ -92,13 +93,13 @@ class PhoneUnlockService {
         return {
           success: true,
           method: 'biometric',
-          message: 'Biometric authentication successful'
+          message: 'Biometric authentication successful',
         };
       } else {
         return {
           success: false,
           error: result.error || 'Biometric authentication failed',
-          fallbackRequired: true
+          fallbackRequired: true,
         };
       }
     } catch (error) {
@@ -106,7 +107,7 @@ class PhoneUnlockService {
       return {
         success: false,
         error: error.message,
-        fallbackRequired: true
+        fallbackRequired: true,
       };
     }
   }
@@ -128,19 +129,19 @@ class PhoneUnlockService {
         return {
           success: true,
           method: 'device_credentials',
-          message: 'Device authentication successful'
+          message: 'Device authentication successful',
         };
       } else {
         return {
           success: false,
-          error: result.error || 'Device authentication failed'
+          error: result.error || 'Device authentication failed',
         };
       }
     } catch (error) {
       console.error('Device credentials authentication failed:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -149,11 +150,11 @@ class PhoneUnlockService {
   async authenticate() {
     try {
       const biometricSupport = await this.isBiometricSupported();
-      
+
       if (biometricSupport.isSupported) {
         // Try biometric first
         const biometricResult = await this.authenticateWithBiometrics();
-        
+
         if (biometricResult.success) {
           return biometricResult;
         } else if (biometricResult.fallbackRequired) {
@@ -170,7 +171,7 @@ class PhoneUnlockService {
       console.error('Authentication failed:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -179,11 +180,14 @@ class PhoneUnlockService {
   async saveAuthenticationSuccess(method) {
     try {
       const timestamp = new Date().toISOString();
-      await AsyncStorage.setItem('last_phone_unlock_auth', JSON.stringify({
-        timestamp,
-        method,
-        success: true
-      }));
+      await AsyncStorage.setItem(
+        'last_phone_unlock_auth',
+        JSON.stringify({
+          timestamp,
+          method,
+          success: true,
+        })
+      );
     } catch (error) {
       console.error('Save authentication success failed:', error);
     }
@@ -229,15 +233,20 @@ class PhoneUnlockService {
         biometricSupport,
         availableTypes: authTypes,
         recentlyAuthenticated,
-        isAvailable: biometricSupport.isSupported || biometricSupport.hasHardware
+        isAvailable:
+          biometricSupport.isSupported || biometricSupport.hasHardware,
       };
     } catch (error) {
       console.error('Get authentication info failed:', error);
       return {
-        biometricSupport: { hasHardware: false, isEnrolled: false, isSupported: false },
+        biometricSupport: {
+          hasHardware: false,
+          isEnrolled: false,
+          isSupported: false,
+        },
         availableTypes: [],
         recentlyAuthenticated: false,
-        isAvailable: false
+        isAvailable: false,
       };
     }
   }

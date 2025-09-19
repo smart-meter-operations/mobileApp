@@ -12,18 +12,18 @@ class NetworkService {
     try {
       // Get initial network state
       this.networkState = await this.getNetworkState();
-      
+
       // Set up network state listener
-      const unsubscribe = NetInfo.addEventListener(state => {
+      const unsubscribe = NetInfo.addEventListener((state) => {
         this.networkState = {
           isConnected: state.isConnected,
           type: state.type,
           isInternetReachable: state.isInternetReachable,
-          details: state.details
+          details: state.details,
         };
-        
+
         // Notify listeners
-        this.listeners.forEach(listener => {
+        this.listeners.forEach((listener) => {
           try {
             listener(this.networkState);
           } catch (error) {
@@ -45,7 +45,7 @@ class NetworkService {
     try {
       const [networkState, networkInfo] = await Promise.all([
         NetInfo.fetch(),
-        Network.getNetworkStateAsync()
+        Network.getNetworkStateAsync(),
       ]);
 
       return {
@@ -56,8 +56,8 @@ class NetworkService {
         expo: {
           type: networkInfo.type,
           isConnected: networkInfo.isConnected,
-          isInternetReachable: networkInfo.isInternetReachable
-        }
+          isInternetReachable: networkInfo.isInternetReachable,
+        },
       };
     } catch (error) {
       console.error('Get network state failed:', error);
@@ -66,7 +66,7 @@ class NetworkService {
         isInternetReachable: false,
         type: 'unknown',
         details: {},
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -80,7 +80,7 @@ class NetworkService {
       let detailedInfo = {
         ...networkState,
         ipAddress,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       // Add connection-specific details
@@ -93,7 +93,7 @@ class NetworkService {
           linkSpeed: networkState.details.linkSpeed,
           ipAddress: networkState.details.ipAddress,
           subnet: networkState.details.subnet,
-          isConnectionExpensive: networkState.details.isConnectionExpensive
+          isConnectionExpensive: networkState.details.isConnectionExpensive,
         };
       }
 
@@ -101,7 +101,7 @@ class NetworkService {
         detailedInfo.cellular = {
           carrier: networkState.details.carrier,
           cellularGeneration: networkState.details.cellularGeneration,
-          isConnectionExpensive: networkState.details.isConnectionExpensive
+          isConnectionExpensive: networkState.details.isConnectionExpensive,
         };
       }
 
@@ -112,7 +112,7 @@ class NetworkService {
         isConnected: false,
         type: 'unknown',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -124,13 +124,13 @@ class NetworkService {
         return {
           downloadSpeed: 0,
           quality: 'No Connection',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       }
 
       const startTime = Date.now();
       const testUrl = 'https://httpbin.org/bytes/50000'; // 50KB test file
-      
+
       try {
         const response = await fetch(testUrl);
         const endTime = Date.now();
@@ -149,15 +149,17 @@ class NetworkService {
           speedKbps: speedKbps.toFixed(2),
           duration: duration.toFixed(2),
           quality,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       } catch (fetchError) {
         // If test URL fails, return basic connection info
         return {
           downloadSpeed: 'Unknown',
-          quality: this.networkState.isInternetReachable ? 'Connected' : 'Limited',
+          quality: this.networkState.isInternetReachable
+            ? 'Connected'
+            : 'Limited',
           error: 'Speed test failed',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       }
     } catch (error) {
@@ -166,7 +168,7 @@ class NetworkService {
         downloadSpeed: 0,
         quality: 'Error',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -187,7 +189,8 @@ class NetworkService {
           bars: this.networkState.isInternetReachable ? 3 : 1,
           quality: this.networkState.isInternetReachable ? 'Good' : 'Poor',
           type: 'cellular',
-          generation: this.networkState.details?.cellularGeneration || 'Unknown'
+          generation:
+            this.networkState.details?.cellularGeneration || 'Unknown',
         };
       }
 
@@ -197,7 +200,7 @@ class NetworkService {
         bars: 0,
         quality: 'Not Applicable',
         type: this.networkState.type,
-        note: 'Signal strength only available for cellular connections'
+        note: 'Signal strength only available for cellular connections',
       };
     } catch (error) {
       console.error('Get signal strength failed:', error);
@@ -205,7 +208,7 @@ class NetworkService {
         strength: 'Error',
         bars: 0,
         quality: 'Error',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -215,7 +218,7 @@ class NetworkService {
     try {
       const [detailedInfo, speedInfo] = await Promise.all([
         this.getDetailedNetworkInfo(),
-        this.measureConnectionSpeed()
+        this.measureConnectionSpeed(),
       ]);
 
       const signalInfo = this.getSignalStrength();
@@ -225,12 +228,12 @@ class NetworkService {
           type: detailedInfo.type,
           isConnected: detailedInfo.isConnected,
           isInternetReachable: detailedInfo.isInternetReachable,
-          ipAddress: detailedInfo.ipAddress
+          ipAddress: detailedInfo.ipAddress,
         },
         signal: signalInfo,
         speed: speedInfo,
         details: detailedInfo.wifi || detailedInfo.cellular || {},
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       console.error('Get capture network info failed:', error);
@@ -239,13 +242,13 @@ class NetworkService {
           type: 'unknown',
           isConnected: false,
           isInternetReachable: false,
-          ipAddress: null
+          ipAddress: null,
         },
         signal: { strength: 'Error', bars: 0, quality: 'Error' },
         speed: { downloadSpeed: 0, quality: 'Error' },
         details: {},
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -253,7 +256,7 @@ class NetworkService {
   // Add network state listener
   addNetworkListener(callback) {
     this.listeners.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.listeners.indexOf(callback);
@@ -270,12 +273,17 @@ class NetworkService {
 
   // Check if online
   isOnline() {
-    return this.networkState?.isConnected && this.networkState?.isInternetReachable;
+    return (
+      this.networkState?.isConnected && this.networkState?.isInternetReachable
+    );
   }
 
   // Check if expensive connection (cellular data)
   isExpensiveConnection() {
-    return this.networkState?.details?.isConnectionExpensive || this.networkState?.type === 'cellular';
+    return (
+      this.networkState?.details?.isConnectionExpensive ||
+      this.networkState?.type === 'cellular'
+    );
   }
 
   // Get connection type

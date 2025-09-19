@@ -584,6 +584,24 @@ const SAFE_COLORS = {
 };
 ```
 
+## Code Review Tools
+
+This project is configured with several code review tools to ensure code quality and consistency:
+
+### 1. ESLint (Static Code Analysis)
+ESLint is configured to analyze JavaScript/React Native code for potential errors, style issues, and best practices.
+
+### 2. Prettier (Code Formatting)
+Prettier is configured to automatically format code according to consistent style guidelines.
+
+### 3. Jest (Testing)
+Jest is configured for unit testing JavaScript functions and components.
+
+### 4. SonarQube Scanner (Static Code Analysis)
+SonarQube Scanner provides comprehensive static analysis for code quality, security, and maintainability.
+
+For detailed information about these tools and how to use them, see [CODE_REVIEW_TOOLS.md](CODE_REVIEW_TOOLS.md).
+
 ## Contributing
 
 ### Development Guidelines

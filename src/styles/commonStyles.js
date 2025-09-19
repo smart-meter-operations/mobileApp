@@ -3,49 +3,49 @@ import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants';
 
 // Common layout styles
 export const layoutStyles = StyleSheet.create({
-  container: {
+  centerContainer: {
+    alignItems: 'center',
     flex: 1,
-    backgroundColor: COLORS.headerBackground,
+    justifyContent: 'center',
   },
-  safeArea: {
+  container: {
+    backgroundColor: COLORS.headerBackground,
     flex: 1,
   },
   content: {
-    flex: 1,
     backgroundColor: COLORS.surface,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
+    elevation: 25,
+    flex: 1,
+    marginTop: -12,
     paddingHorizontal: SPACING['2xl'],
     paddingTop: SPACING['4xl'],
-    marginTop: -12,
     // Enhanced layered shadow effects
     shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: -12,
     },
+    borderWidth: 0.5,
     shadowOpacity: 0.25,
     shadowRadius: 20,
-    elevation: 25,
     // Additional shadow layers for depth
-    borderWidth: 0.5,
     borderColor: 'rgba(203, 213, 225, 0.3)',
     borderTopWidth: 0,
-  },
-  scrollContent: {
-    flex: 1,
   },
   formContainer: {
     flex: 1,
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   rowContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    flex: 1,
   },
   spaceBetween: {
     justifyContent: 'space-between',
@@ -55,23 +55,23 @@ export const layoutStyles = StyleSheet.create({
 // Header styles
 export const headerStyles = StyleSheet.create({
   header: {
-    paddingTop: SPACING['6xl'],
+    alignItems: 'center',
     paddingBottom: SPACING['6xl'],
     paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
+    paddingTop: SPACING['6xl'],
   },
   logoContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   logoIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    height: 24,
+    justifyContent: 'center',
     marginRight: SPACING.sm,
+    width: 24,
   },
   logoIconText: {
     color: COLORS.textWhite,
@@ -87,40 +87,41 @@ export const headerStyles = StyleSheet.create({
 
 // Typography styles
 export const textStyles = StyleSheet.create({
-  title: {
-    fontSize: TYPOGRAPHY.fontSizes['4xl'],
-    fontWeight: TYPOGRAPHY.fontWeights.bold,
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
-  },
-  subtitle: {
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    color: COLORS.textSecondary,
-    lineHeight: TYPOGRAPHY.lineHeights.normal,
-    marginBottom: SPACING['3xl'] + SPACING.xs,
-  },
   bodyText: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
     color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
     lineHeight: TYPOGRAPHY.lineHeights.normal,
   },
   caption: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
     color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
   },
   footerText: {
-    fontSize: TYPOGRAPHY.fontSizes.xs,
     color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSizes.xs,
+  },
+  subtitle: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    lineHeight: TYPOGRAPHY.lineHeights.normal,
+    marginBottom: SPACING['3xl'] + SPACING.xs,
+  },
+  title: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes['4xl'],
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    marginBottom: SPACING.md,
   },
 });
 
 // Button styles
 export const buttonStyles = StyleSheet.create({
   primaryButton: {
+    alignItems: 'center',
     backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.lg,
+    elevation: 8,
     paddingVertical: SPACING.lg + 2,
-    alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: {
       width: 0,
@@ -128,7 +129,6 @@ export const buttonStyles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
   },
   primaryButtonDisabled: {
     backgroundColor: COLORS.textMuted,
@@ -139,12 +139,12 @@ export const buttonStyles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeights.bold,
   },
   secondaryButton: {
+    alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
     paddingVertical: SPACING.lg + 2,
-    alignItems: 'center',
   },
   secondaryButtonText: {
     color: COLORS.textPrimary,
@@ -156,15 +156,16 @@ export const buttonStyles = StyleSheet.create({
 // Input styles
 export const inputStyles = StyleSheet.create({
   textInput: {
-    borderWidth: 1.5,
+    backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
     borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1.5,
+    color: COLORS.textPrimary,
+    elevation: 2,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    marginBottom: SPACING['2xl'] + SPACING.xs,
     paddingHorizontal: SPACING.lg + 2,
     paddingVertical: SPACING.lg + 2,
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    backgroundColor: COLORS.surface,
-    marginBottom: SPACING['2xl'] + SPACING.xs,
-    color: COLORS.textPrimary,
     shadowColor: COLORS.shadowLight,
     shadowOffset: {
       width: 0,
@@ -172,7 +173,6 @@ export const inputStyles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
   },
   textInputFocused: {
     borderColor: COLORS.borderActive,
@@ -186,6 +186,7 @@ export const cardStyles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.xl,
+    elevation: 4,
     padding: SPACING.lg,
     shadowColor: COLORS.shadow,
     shadowOffset: {
@@ -194,36 +195,35 @@ export const cardStyles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+  },
+  cardHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  cardIcon: {
+    fontSize: TYPOGRAPHY.fontSizes.xl,
   },
   cardPrimary: {
     backgroundColor: COLORS.headerBackground,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
   cardTitle: {
+    color: COLORS.textSecondary,
     fontSize: TYPOGRAPHY.fontSizes.sm,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textSecondary,
     letterSpacing: 0.5,
   },
   cardTitleWhite: {
     color: COLORS.textWhite,
-  },
-  cardIcon: {
-    fontSize: TYPOGRAPHY.fontSizes.xl,
   },
 });
 
 // Footer styles
 export const footerStyles = StyleSheet.create({
   footer: {
-    paddingBottom: SPACING['4xl'],
     alignItems: 'center',
+    paddingBottom: SPACING['4xl'],
   },
   footerHidden: {
     display: 'none',
@@ -235,11 +235,11 @@ export const animationStyles = StyleSheet.create({
   fadeIn: {
     opacity: 0,
   },
-  slideUp: {
-    transform: [{ translateY: 50 }],
-  },
   scaleSmall: {
     transform: [{ scale: 0.95 }],
+  },
+  slideUp: {
+    transform: [{ translateY: 50 }],
   },
 });
 
@@ -247,37 +247,37 @@ export const animationStyles = StyleSheet.create({
 export const listStyles = StyleSheet.create({
   listContainer: {
     backgroundColor: COLORS.surface,
-    marginHorizontal: SPACING.xl,
     borderRadius: BORDER_RADIUS.lg,
+    marginHorizontal: SPACING.xl,
     overflow: 'hidden',
   },
   listItem: {
-    flexDirection: 'row',
     alignItems: 'center',
+    borderBottomColor: COLORS.borderLight,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
   },
   listItemContent: {
     flex: 1,
     justifyContent: 'center',
   },
   listItemName: {
+    color: COLORS.textPrimary,
     fontSize: TYPOGRAPHY.fontSizes.base,
     fontWeight: TYPOGRAPHY.fontWeights.medium,
-    color: COLORS.textPrimary,
   },
   statusContainer: {
-    width: 80,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 80,
   },
   statusDot: {
-    width: 8,
-    height: 8,
     borderRadius: 4,
+    height: 8,
     marginLeft: SPACING.lg,
+    width: 8,
   },
 });
 
@@ -290,16 +290,15 @@ export const otpStyles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
   },
   otpInput: {
-    width: 60,
-    height: 60,
-    borderWidth: 2,
+    backgroundColor: COLORS.surface,
     borderColor: COLORS.borderLight,
     borderRadius: BORDER_RADIUS.lg - 3,
+    borderWidth: 2,
+    color: COLORS.textPrimary,
+    elevation: 3,
     fontSize: TYPOGRAPHY.fontSizes['4xl'],
     fontWeight: TYPOGRAPHY.fontWeights.bold,
-    backgroundColor: COLORS.surface,
-    color: COLORS.textPrimary,
-    textAlign: 'center',
+    height: 60,
     shadowColor: COLORS.shadowLight,
     shadowOffset: {
       width: 0,
@@ -307,7 +306,8 @@ export const otpStyles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    elevation: 3,
+    textAlign: 'center',
+    width: 60,
   },
   otpInputFilled: {
     borderColor: COLORS.primary,
@@ -320,13 +320,13 @@ export const otpStyles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: SPACING['2xl'] + SPACING.xs,
   },
-  resendText: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
-    color: COLORS.textSecondary,
-  },
   resendLink: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
     color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
+  resendText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
   },
 });

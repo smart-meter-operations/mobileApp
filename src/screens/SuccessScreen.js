@@ -25,36 +25,48 @@ export default function SuccessScreen({ navigation }) {
   return (
     <SafeAreaView style={layoutStyles.container}>
       <StatusBar style="light" />
-      
+
       <AppHeader />
 
       <Animated.View style={[layoutStyles.content, animatedStyle]}>
         <View style={[layoutStyles.centerContainer, { paddingHorizontal: 24 }]}>
           {/* Success Checkmark with bounce animation */}
           <Animated.View style={[bounceStyle, { marginBottom: 32 }]}>
-            <View style={{
-              width: 120,
-              height: 120,
-              borderRadius: 60,
-              backgroundColor: COLORS.success,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 24,
-              shadowColor: COLORS.success,
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 16,
-              elevation: 12,
-            }}>
+            <View
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: COLORS.success,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 24,
+                shadowColor: COLORS.success,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 16,
+                elevation: 12,
+              }}
+            >
               <Text style={{ fontSize: 48, color: 'white' }}>✓</Text>
             </View>
           </Animated.View>
-          
-          <Text style={[textStyles.title, { textAlign: 'center', marginBottom: 16 }]}>
+
+          <Text
+            style={[
+              textStyles.title,
+              { textAlign: 'center', marginBottom: 16 },
+            ]}
+          >
             Success!
           </Text>
-          
-          <Text style={[textStyles.subtitle, { textAlign: 'center', marginBottom: 0 }]}>
+
+          <Text
+            style={[
+              textStyles.subtitle,
+              { textAlign: 'center', marginBottom: 0 },
+            ]}
+          >
             Your account has been verified successfully.{'\n'}
             Redirecting to dashboard...
           </Text>

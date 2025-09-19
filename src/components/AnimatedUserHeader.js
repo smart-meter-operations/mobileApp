@@ -5,14 +5,18 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) => {
+const AnimatedUserHeader = ({
+  user,
+  onUserIconPress,
+  syncStatus = 'online',
+}) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [animationValue] = useState(new Animated.Value(1));
   const [welcomeOpacity] = useState(new Animated.Value(1));
@@ -31,7 +35,7 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
     if (!isExpanded) return;
 
     setIsExpanded(false);
-    
+
     // Animate the collapse
     Animated.parallel([
       Animated.timing(welcomeOpacity, {
@@ -56,7 +60,7 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
     if (isExpanded) return;
 
     setIsExpanded(true);
-    
+
     // Animate the expansion
     Animated.parallel([
       Animated.timing(animationValue, {
@@ -146,49 +150,38 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
   return (
     <View style={styles.container}>
       {/* Animated User Header - Left Side */}
-      <Animated.View 
+      <Animated.View
         style={[
           styles.headerContainer,
           {
             width: animatedWidth,
             paddingHorizontal: animatedPadding,
             paddingVertical: animatedPadding,
-          }
+          },
         ]}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.headerContent}
           onPress={handleUserIconPress}
           activeOpacity={0.8}
         >
           {/* User Avatar - Circular without rectangle wrapper */}
           <View style={styles.circularAvatar}>
-            <Text style={styles.avatarText}>
-              {user?.avatar || '👨‍💼'}
-            </Text>
+            <Text style={styles.avatarText}>{user?.avatar || '👨‍💼'}</Text>
           </View>
 
           {/* User Details - Only visible when expanded */}
           {isExpanded && (
-            <Animated.View 
-              style={[
-                styles.userDetails,
-                { opacity: userDetailsOpacity }
-              ]}
+            <Animated.View
+              style={[styles.userDetails, { opacity: userDetailsOpacity }]}
             >
-              <Animated.Text 
-                style={[
-                  styles.welcomeText,
-                  { opacity: welcomeOpacity }
-                ]}
+              <Animated.Text
+                style={[styles.welcomeText, { opacity: welcomeOpacity }]}
               >
                 Welcome, {user?.name || 'Rajesh'}
               </Animated.Text>
-              <Animated.Text 
-                style={[
-                  styles.roleText,
-                  { opacity: userDetailsOpacity }
-                ]}
+              <Animated.Text
+                style={[styles.roleText, { opacity: userDetailsOpacity }]}
               >
                 {user?.role || 'Surveyor / Installer'}
               </Animated.Text>
@@ -198,23 +191,24 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
           {/* Expand/Collapse indicator */}
           {!isExpanded && (
             <View style={styles.expandIndicator}>
-              <Ionicons name="chevron-down" size={12} color={COLORS.textSecondary} />
+              <Ionicons
+                name="chevron-down"
+                size={12}
+                color={COLORS.textSecondary}
+              />
             </View>
           )}
         </TouchableOpacity>
       </Animated.View>
 
       {/* Sync Status Pill - Right Side */}
-      <TouchableOpacity 
-        style={[
-          styles.syncContainer,
-          { backgroundColor: getSyncColors().bg }
-        ]}
+      <TouchableOpacity
+        style={[styles.syncContainer, { backgroundColor: getSyncColors().bg }]}
         activeOpacity={0.8}
       >
-        <Ionicons 
-          name={getSyncStatusIcon()} 
-          size={16} 
+        <Ionicons
+          name={getSyncStatusIcon()}
+          size={16}
           color={getSyncColors().text}
         />
         <Text style={[styles.syncText, { color: getSyncColors().text }]}>
@@ -226,73 +220,65 @@ const AnimatedUserHeader = ({ user, onUserIconPress, syncStatus = 'online' }) =>
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    paddingTop: SPACING.lg,
-    backgroundColor: COLORS.headerBackground,
-  },
-  syncContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    height: 32,
-    borderRadius: BORDER_RADIUS.lg,
-  },
-  headerContainer: {
-    backgroundColor: 'transparent',
-    borderRadius: 0,
-    alignSelf: 'flex-start', // Align to left side
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.borderLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  circularAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
-  },
   avatarText: {
     fontSize: TYPOGRAPHY.fontSizes.lg,
+  },
+  circularAvatar: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.white,
+    borderRadius: 22,
+    borderWidth: 2,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: COLORS.headerBackground,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  expandIndicator: {
+    marginLeft: SPACING.xs,
+  },
+  headerContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'transparent',
+    borderRadius: 0, // Align to left side
+  },
+  headerContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  roleText: {
+    color: COLORS.textLight,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    marginTop: 2,
+  },
+  syncContainer: {
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.lg,
+    flexDirection: 'row',
+    height: 32,
+    paddingHorizontal: SPACING.md,
+  },
+  syncText: {
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
+    marginLeft: 6,
   },
   userDetails: {
     flex: 1,
     marginLeft: SPACING.md,
   },
   welcomeText: {
+    color: COLORS.textWhite,
     fontSize: TYPOGRAPHY.fontSizes.lg,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    color: COLORS.textWhite,
-  },
-  roleText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textLight,
-    marginTop: 2,
-  },
-  expandIndicator: {
-    marginLeft: SPACING.xs,
-  },
-  syncText: {
-    marginLeft: 6,
-    fontSize: TYPOGRAPHY.fontSizes.sm,
-    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
 });
 

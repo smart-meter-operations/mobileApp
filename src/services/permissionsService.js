@@ -6,7 +6,7 @@ class PermissionsService {
   constructor() {
     this.permissions = {
       camera: null,
-      location: null
+      location: null,
     };
   }
 
@@ -15,13 +15,13 @@ class PermissionsService {
     try {
       const { status } = await Camera.requestCameraPermissionsAsync();
       this.permissions.camera = status;
-      
+
       console.log('Camera permission status:', status);
-      
+
       return {
         granted: status === 'granted',
         status,
-        canAskAgain: status !== 'denied'
+        canAskAgain: status !== 'denied',
       };
     } catch (error) {
       console.error('Request camera permission failed:', error);
@@ -29,7 +29,7 @@ class PermissionsService {
         granted: false,
         status: 'error',
         canAskAgain: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -39,13 +39,13 @@ class PermissionsService {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       this.permissions.location = status;
-      
+
       console.log('Location permission status:', status);
-      
+
       return {
         granted: status === 'granted',
         status,
-        canAskAgain: status !== 'denied'
+        canAskAgain: status !== 'denied',
       };
     } catch (error) {
       console.error('Request location permission failed:', error);
@@ -53,7 +53,7 @@ class PermissionsService {
         granted: false,
         status: 'error',
         canAskAgain: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -63,18 +63,18 @@ class PermissionsService {
     try {
       const { status } = await Camera.getCameraPermissionsAsync();
       this.permissions.camera = status;
-      
+
       return {
         granted: status === 'granted',
         status,
-        canAskAgain: status !== 'denied'
+        canAskAgain: status !== 'denied',
       };
     } catch (error) {
       console.error('Check camera permission failed:', error);
       return {
         granted: false,
         status: 'error',
-        canAskAgain: false
+        canAskAgain: false,
       };
     }
   }
@@ -84,18 +84,18 @@ class PermissionsService {
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
       this.permissions.location = status;
-      
+
       return {
         granted: status === 'granted',
         status,
-        canAskAgain: status !== 'denied'
+        canAskAgain: status !== 'denied',
       };
     } catch (error) {
       console.error('Check location permission failed:', error);
       return {
         granted: false,
         status: 'error',
-        canAskAgain: false
+        canAskAgain: false,
       };
     }
   }
@@ -105,13 +105,13 @@ class PermissionsService {
     try {
       const [cameraResult, locationResult] = await Promise.all([
         this.requestCameraPermission(),
-        this.requestLocationPermission()
+        this.requestLocationPermission(),
       ]);
 
       return {
         camera: cameraResult,
         location: locationResult,
-        allGranted: cameraResult.granted && locationResult.granted
+        allGranted: cameraResult.granted && locationResult.granted,
       };
     } catch (error) {
       console.error('Request capture permissions failed:', error);
@@ -119,7 +119,7 @@ class PermissionsService {
         camera: { granted: false, status: 'error' },
         location: { granted: false, status: 'error' },
         allGranted: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -129,13 +129,13 @@ class PermissionsService {
     try {
       const [cameraResult, locationResult] = await Promise.all([
         this.checkCameraPermission(),
-        this.checkLocationPermission()
+        this.checkLocationPermission(),
       ]);
 
       return {
         camera: cameraResult,
         location: locationResult,
-        allGranted: cameraResult.granted && locationResult.granted
+        allGranted: cameraResult.granted && locationResult.granted,
       };
     } catch (error) {
       console.error('Check capture permissions failed:', error);
@@ -143,7 +143,7 @@ class PermissionsService {
         camera: { granted: false, status: 'error' },
         location: { granted: false, status: 'error' },
         allGranted: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -151,7 +151,7 @@ class PermissionsService {
   // Show permission denied alert
   showPermissionDeniedAlert(permission, onRetry, onCancel) {
     const permissionName = permission === 'camera' ? 'Camera' : 'Location';
-    
+
     Alert.alert(
       `${permissionName} Permission Required`,
       `This feature requires ${permissionName.toLowerCase()} access. Please grant permission to continue.`,
@@ -159,19 +159,19 @@ class PermissionsService {
         {
           text: 'Cancel',
           style: 'cancel',
-          onPress: onCancel
+          onPress: onCancel,
         },
         {
           text: 'Retry',
-          onPress: onRetry
+          onPress: onRetry,
         },
         {
           text: 'Settings',
           onPress: () => {
             // Open app settings - this would need to be implemented per platform
             console.log('Open app settings for permission');
-          }
-        }
+          },
+        },
       ]
     );
   }
@@ -181,7 +181,7 @@ class PermissionsService {
     try {
       // First check existing permissions
       const permissionStatus = await this.checkCapturePermissions();
-      
+
       if (permissionStatus.allGranted) {
         onSuccess();
         return;
@@ -189,7 +189,7 @@ class PermissionsService {
 
       // Request missing permissions
       const requestResult = await this.requestCapturePermissions();
-      
+
       if (requestResult.allGranted) {
         onSuccess();
         return;
@@ -197,18 +197,18 @@ class PermissionsService {
 
       // Handle permission denials
       let deniedPermissions = [];
-      
+
       if (!requestResult.camera.granted) {
         deniedPermissions.push('camera');
       }
-      
+
       if (!requestResult.location.granted) {
         deniedPermissions.push('location');
       }
 
       if (deniedPermissions.length > 0) {
         const permissionText = deniedPermissions.join(' and ');
-        
+
         Alert.alert(
           'Permissions Required',
           `Camera and location permissions are required for the Capture feature. Please grant ${permissionText} permission(s) to continue.`,
@@ -216,12 +216,13 @@ class PermissionsService {
             {
               text: 'Cancel',
               style: 'cancel',
-              onPress: () => onFailure('Permissions denied')
+              onPress: () => onFailure('Permissions denied'),
             },
             {
               text: 'Retry',
-              onPress: () => this.handleCapturePermissions(onSuccess, onFailure)
-            }
+              onPress: () =>
+                this.handleCapturePermissions(onSuccess, onFailure),
+            },
           ]
         );
       }
@@ -236,13 +237,13 @@ class PermissionsService {
     try {
       const [cameraStatus, locationStatus] = await Promise.all([
         this.checkCameraPermission(),
-        this.checkLocationPermission()
+        this.checkLocationPermission(),
       ]);
 
       return {
         camera: cameraStatus,
         location: locationStatus,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       console.error('Get all permission status failed:', error);
@@ -250,7 +251,7 @@ class PermissionsService {
         camera: { granted: false, status: 'error' },
         location: { granted: false, status: 'error' },
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }

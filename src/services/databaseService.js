@@ -110,14 +110,19 @@ class DatabaseService {
   async saveUser(userData) {
     try {
       const { phone, name, role, status = 'offline', avatar } = userData;
-      
+
       const result = await this.db.runAsync(
         `INSERT OR REPLACE INTO users (phone, name, role, status, avatar, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         [phone, name, role, status, avatar, new Date().toISOString()]
       );
 
-      await this.addToSyncQueue('users', result.lastInsertRowId, 'INSERT', userData);
+      await this.addToSyncQueue(
+        'users',
+        result.lastInsertRowId,
+        'INSERT',
+        userData
+      );
       return { success: true, id: result.lastInsertRowId };
     } catch (error) {
       console.error('Save user failed:', error);
@@ -141,15 +146,35 @@ class DatabaseService {
   // Installation operations
   async saveInstallation(installationData) {
     try {
-      const { name, address, status = 'pending', latitude, longitude, assigned_to } = installationData;
-      
+      const {
+        name,
+        address,
+        status = 'pending',
+        latitude,
+        longitude,
+        assigned_to,
+      } = installationData;
+
       const result = await this.db.runAsync(
         `INSERT INTO installations (name, address, status, latitude, longitude, assigned_to, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [name, address, status, latitude, longitude, assigned_to, new Date().toISOString()]
+        [
+          name,
+          address,
+          status,
+          latitude,
+          longitude,
+          assigned_to,
+          new Date().toISOString(),
+        ]
       );
 
-      await this.addToSyncQueue('installations', result.lastInsertRowId, 'INSERT', installationData);
+      await this.addToSyncQueue(
+        'installations',
+        result.lastInsertRowId,
+        'INSERT',
+        installationData
+      );
       return { success: true, id: result.lastInsertRowId };
     } catch (error) {
       console.error('Save installation failed:', error);
@@ -188,35 +213,40 @@ class DatabaseService {
   // Capture operations
   async saveCapture(captureData) {
     try {
-      const { 
-        installation_id, 
-        image_path, 
-        latitude, 
-        longitude, 
-        network_type, 
-        signal_strength, 
+      const {
+        installation_id,
+        image_path,
+        latitude,
+        longitude,
+        network_type,
+        signal_strength,
         connection_quality,
-        bandwidth_info 
+        bandwidth_info,
       } = captureData;
-      
+
       const result = await this.db.runAsync(
         `INSERT INTO captures (installation_id, image_path, latitude, longitude, 
          network_type, signal_strength, connection_quality, bandwidth_info, captured_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          installation_id, 
-          image_path, 
-          latitude, 
-          longitude, 
-          network_type, 
-          signal_strength, 
+          installation_id,
+          image_path,
+          latitude,
+          longitude,
+          network_type,
+          signal_strength,
           connection_quality,
           JSON.stringify(bandwidth_info),
-          new Date().toISOString()
+          new Date().toISOString(),
         ]
       );
 
-      await this.addToSyncQueue('captures', result.lastInsertRowId, 'INSERT', captureData);
+      await this.addToSyncQueue(
+        'captures',
+        result.lastInsertRowId,
+        'INSERT',
+        captureData
+      );
       return { success: true, id: result.lastInsertRowId };
     } catch (error) {
       console.error('Save capture failed:', error);
@@ -253,7 +283,7 @@ class DatabaseService {
         survey_pending = 0,
         installation_total = 0,
         installation_completed = 0,
-        installation_pending = 0
+        installation_pending = 0,
       } = stats;
 
       await this.db.runAsync(
@@ -268,7 +298,7 @@ class DatabaseService {
           installation_total,
           installation_completed,
           installation_pending,
-          new Date().toISOString()
+          new Date().toISOString(),
         ]
       );
 
@@ -290,14 +320,14 @@ class DatabaseService {
           survey: {
             total: result.survey_total,
             completed: result.survey_completed,
-            pending: result.survey_pending
+            pending: result.survey_pending,
           },
           installation: {
             total: result.installation_total,
             completed: result.installation_completed,
-            pending: result.installation_pending
+            pending: result.installation_pending,
           },
-          lastUpdated: result.last_updated
+          lastUpdated: result.last_updated,
         };
       }
 
@@ -305,14 +335,14 @@ class DatabaseService {
       return {
         survey: { total: 0, completed: 0, pending: 0 },
         installation: { total: 0, completed: 0, pending: 0 },
-        lastUpdated: null
+        lastUpdated: null,
       };
     } catch (error) {
       console.error('Get dashboard stats failed:', error);
       return {
         survey: { total: 0, completed: 0, pending: 0 },
         installation: { total: 0, completed: 0, pending: 0 },
-        lastUpdated: null
+        lastUpdated: null,
       };
     }
   }

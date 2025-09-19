@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  Linking,
+} from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 
@@ -11,9 +19,9 @@ const mockTransformers = [
 ];
 
 const mockPoles = [
-  { id: 1, latitude: 18.5200, longitude: 73.8560, name: 'Pole 1' },
-  { id: 2, latitude: 18.5208, longitude: 73.8570, name: 'Pole 2' },
-  { id: 3, latitude: 18.5210, longitude: 73.8565, name: 'Pole 3' },
+  { id: 1, latitude: 18.52, longitude: 73.856, name: 'Pole 1' },
+  { id: 2, latitude: 18.5208, longitude: 73.857, name: 'Pole 2' },
+  { id: 3, latitude: 18.521, longitude: 73.8565, name: 'Pole 3' },
   { id: 4, latitude: 18.5198, longitude: 73.8555, name: 'Pole 4' },
 ];
 
@@ -75,15 +83,15 @@ export default function MapScreen() {
         <Text style={styles.errorHint}>
           Try switching to Google Maps or check your internet connection.
         </Text>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.actionButton}
           onPress={() => setMapError(null)}
         >
           <Text style={styles.actionText}>Retry</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: '#4285F4' }]}
           onPress={switchToGoogleMaps}
         >
@@ -104,7 +112,6 @@ export default function MapScreen() {
         onError={handleMapError}
         onMapReady={() => console.log('Map is ready')}
       >
-        
         {/* User Location Marker */}
         <Marker
           coordinate={{
@@ -117,7 +124,7 @@ export default function MapScreen() {
 
         {/* Transformers */}
         {showTransformers &&
-          mockTransformers.map(transformer => (
+          mockTransformers.map((transformer) => (
             <Marker
               key={transformer.id}
               coordinate={{
@@ -135,7 +142,7 @@ export default function MapScreen() {
 
         {/* Poles */}
         {showPoles &&
-          mockPoles.map(pole => (
+          mockPoles.map((pole) => (
             <Marker
               key={pole.id}
               coordinate={{
@@ -153,7 +160,7 @@ export default function MapScreen() {
 
         {/* Feeders */}
         {showFeeders &&
-          mockFeeders.map(feeder => (
+          mockFeeders.map((feeder) => (
             <Marker
               key={feeder.id}
               coordinate={{
@@ -175,14 +182,20 @@ export default function MapScreen() {
         <TouchableOpacity
           style={[
             styles.toggleButton,
-            { backgroundColor: showTransformers ? COLORS.primary : COLORS.background },
+            {
+              backgroundColor: showTransformers
+                ? COLORS.primary
+                : COLORS.background,
+            },
           ]}
           onPress={toggleTransformers}
         >
-          <Text style={[
-            styles.toggleText,
-            { color: showTransformers ? COLORS.white : COLORS.text }
-          ]}>
+          <Text
+            style={[
+              styles.toggleText,
+              { color: showTransformers ? COLORS.white : COLORS.text },
+            ]}
+          >
             Transformers
           </Text>
         </TouchableOpacity>
@@ -194,10 +207,12 @@ export default function MapScreen() {
           ]}
           onPress={togglePoles}
         >
-          <Text style={[
-            styles.toggleText,
-            { color: showPoles ? COLORS.white : COLORS.text }
-          ]}>
+          <Text
+            style={[
+              styles.toggleText,
+              { color: showPoles ? COLORS.white : COLORS.text },
+            ]}
+          >
             Poles
           </Text>
         </TouchableOpacity>
@@ -205,35 +220,65 @@ export default function MapScreen() {
         <TouchableOpacity
           style={[
             styles.toggleButton,
-            { backgroundColor: showFeeders ? COLORS.primary : COLORS.background },
+            {
+              backgroundColor: showFeeders ? COLORS.primary : COLORS.background,
+            },
           ]}
           onPress={toggleFeeders}
         >
-          <Text style={[
-            styles.toggleText,
-            { color: showFeeders ? COLORS.white : COLORS.text }
-          ]}>
+          <Text
+            style={[
+              styles.toggleText,
+              { color: showFeeders ? COLORS.white : COLORS.text },
+            ]}
+          >
             Feeders
           </Text>
         </TouchableOpacity>
       </View>
-      
+
       {/* Map Type Switcher */}
       <View style={styles.mapTypeContainer}>
-        <TouchableOpacity 
-          style={[styles.mapTypeButton, { backgroundColor: mapType === 'openstreetmap' ? COLORS.primary : COLORS.background }]}
+        <TouchableOpacity
+          style={[
+            styles.mapTypeButton,
+            {
+              backgroundColor:
+                mapType === 'openstreetmap'
+                  ? COLORS.primary
+                  : COLORS.background,
+            },
+          ]}
           onPress={() => setMapType('openstreetmap')}
         >
-          <Text style={[styles.mapTypeText, { color: mapType === 'openstreetmap' ? COLORS.white : COLORS.text }]}>
+          <Text
+            style={[
+              styles.mapTypeText,
+              {
+                color: mapType === 'openstreetmap' ? COLORS.white : COLORS.text,
+              },
+            ]}
+          >
             OSM
           </Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.mapTypeButton, { backgroundColor: mapType === 'none' ? COLORS.primary : COLORS.background }]}
+
+        <TouchableOpacity
+          style={[
+            styles.mapTypeButton,
+            {
+              backgroundColor:
+                mapType === 'none' ? COLORS.primary : COLORS.background,
+            },
+          ]}
           onPress={() => setMapType('none')}
         >
-          <Text style={[styles.mapTypeText, { color: mapType === 'none' ? COLORS.white : COLORS.text }]}>
+          <Text
+            style={[
+              styles.mapTypeText,
+              { color: mapType === 'none' ? COLORS.white : COLORS.text },
+            ]}
+          >
             None
           </Text>
         </TouchableOpacity>
@@ -243,109 +288,109 @@ export default function MapScreen() {
 }
 
 const styles = StyleSheet.create({
+  actionButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.md,
+    width: '80%',
+  },
+  actionText: {
+    color: COLORS.white,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
   container: {
-    flex: 1,
     backgroundColor: COLORS.background,
+    flex: 1,
+  },
+  controlsContainer: {
+    bottom: SPACING.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    left: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    position: 'absolute',
+    right: SPACING.lg,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    flex: 1,
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  errorHint: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+  },
+  errorTitle: {
+    color: COLORS.error,
+    fontSize: TYPOGRAPHY.fontSizes.xl,
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    marginBottom: SPACING.md,
   },
   map: {
     flex: 1,
   },
-  controlsContainer: {
-    position: 'absolute',
-    bottom: SPACING.xl,
-    left: SPACING.lg,
-    right: SPACING.lg,
+  mapTypeButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+  },
+  mapTypeContainer: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    elevation: 3,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
+    overflow: 'hidden',
+    position: 'absolute',
+    right: SPACING.lg,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    top: SPACING.lg,
+  },
+  mapTypeText: {
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
+  marker: {
+    alignItems: 'center',
+    borderColor: COLORS.white,
+    borderRadius: 15,
+    borderWidth: 2,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  markerIcon: {
+    color: COLORS.white,
+    fontSize: 16,
   },
   toggleButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.md,
     backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
     elevation: 3,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
   },
   toggleText: {
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    fontSize: TYPOGRAPHY.fontSizes.sm,
     color: COLORS.white,
-  },
-  marker: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
-  },
-  markerIcon: {
-    fontSize: 16,
-    color: COLORS.white,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.xl,
-    backgroundColor: COLORS.background,
-  },
-  errorTitle: {
-    fontSize: TYPOGRAPHY.fontSizes.xl,
-    fontWeight: TYPOGRAPHY.fontWeights.bold,
-    color: COLORS.error,
-    marginBottom: SPACING.md,
-  },
-  errorText: {
-    fontSize: TYPOGRAPHY.fontSizes.base,
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: SPACING.lg,
-  },
-  errorHint: {
     fontSize: TYPOGRAPHY.fontSizes.sm,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: SPACING.xl,
-  },
-  actionButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.md,
-    width: '80%',
-    alignItems: 'center',
-  },
-  actionText: {
-    color: COLORS.white,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
-  },
-  mapTypeContainer: {
-    position: 'absolute',
-    top: SPACING.lg,
-    right: SPACING.lg,
-    flexDirection: 'row',
-    backgroundColor: COLORS.background,
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  mapTypeButton: {
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-  },
-  mapTypeText: {
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-    fontSize: TYPOGRAPHY.fontSizes.sm,
   },
 });

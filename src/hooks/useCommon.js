@@ -4,22 +4,28 @@ import { Keyboard } from 'react-native';
 // Hook for keyboard visibility
 export const useKeyboard = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  
+
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-    
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
     return () => {
       keyboardDidShowListener?.remove();
       keyboardDidHideListener?.remove();
     };
   }, []);
-  
+
   return isKeyboardVisible;
 };
 
@@ -27,7 +33,7 @@ export const useKeyboard = () => {
 export const useAsyncOperation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const execute = async (asyncFunction) => {
     try {
       setLoading(true);
@@ -41,7 +47,7 @@ export const useAsyncOperation = () => {
       setLoading(false);
     }
   };
-  
+
   return { loading, error, execute };
 };
 
@@ -50,27 +56,27 @@ export const useFormValidation = (initialValues, validationRules) => {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  
+
   const setValue = (name, value) => {
-    setValues(prev => ({ ...prev, [name]: value }));
-    
+    setValues((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
-  
+
   const setFieldTouched = (name) => {
-    setTouched(prev => ({ ...prev, [name]: true }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
   };
-  
+
   const validate = () => {
     const newErrors = {};
-    
-    Object.keys(validationRules).forEach(field => {
+
+    Object.keys(validationRules).forEach((field) => {
       const rules = validationRules[field];
       const value = values[field];
-      
+
       for (const rule of rules) {
         const error = rule(value);
         if (error) {
@@ -79,17 +85,17 @@ export const useFormValidation = (initialValues, validationRules) => {
         }
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const reset = () => {
     setValues(initialValues);
     setErrors({});
     setTouched({});
   };
-  
+
   return {
     values,
     errors,
@@ -107,7 +113,7 @@ export const useApi = (apiFunction, dependencies = []) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const fetchData = async (...args) => {
     try {
       setLoading(true);
@@ -122,12 +128,12 @@ export const useApi = (apiFunction, dependencies = []) => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     if (dependencies.length > 0) {
       fetchData();
     }
   }, dependencies);
-  
+
   return { data, loading, error, refetch: fetchData };
 };

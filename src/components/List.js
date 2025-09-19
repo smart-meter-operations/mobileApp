@@ -5,22 +5,26 @@ import { COLORS } from '../constants';
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'completed': return COLORS.success;
-    case 'pending': return COLORS.error;
-    case 'in_progress': return COLORS.warning;
-    default: return COLORS.textMuted;
+    case 'completed':
+      return COLORS.success;
+    case 'pending':
+      return COLORS.error;
+    case 'in_progress':
+      return COLORS.warning;
+    default:
+      return COLORS.textMuted;
   }
 };
 
-const ListItem = ({ 
-  item, 
-  onPress, 
+const ListItem = ({
+  item,
+  onPress,
   showStatus = true,
   style = {},
-  children 
+  children,
 }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[listStyles.listItem, style]}
       onPress={() => onPress && onPress(item)}
       activeOpacity={0.7}
@@ -30,34 +34,42 @@ const ListItem = ({
           <>
             <Text style={listStyles.listItemName}>{item.name}</Text>
             {item.address && (
-              <Text style={{ fontSize: 12, color: COLORS.textSecondary, marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: COLORS.textSecondary,
+                  marginTop: 2,
+                }}
+              >
                 {item.address}
               </Text>
             )}
           </>
         )}
       </View>
-      
+
       {showStatus && (
         <View style={listStyles.statusContainer}>
-          <View style={[
-            listStyles.statusDot, 
-            { backgroundColor: getStatusColor(item.status) }
-          ]} />
+          <View
+            style={[
+              listStyles.statusDot,
+              { backgroundColor: getStatusColor(item.status) },
+            ]}
+          />
         </View>
       )}
     </TouchableOpacity>
   );
 };
 
-const List = ({ 
-  data = [], 
-  renderItem, 
-  onItemPress, 
+const List = ({
+  data = [],
+  renderItem,
+  onItemPress,
   showStatus = true,
   style = {},
   emptyMessage = 'No items available',
-  keyExtractor = (item) => item.id
+  keyExtractor = (item) => item.id,
 }) => {
   if (data.length === 0) {
     return (
@@ -70,12 +82,12 @@ const List = ({
       </View>
     );
   }
-  
+
   return (
     <View style={[listStyles.listContainer, style]}>
       {data.map((item, index) => {
         const key = keyExtractor ? keyExtractor(item, index) : index;
-        
+
         return (
           <ListItem
             key={key}

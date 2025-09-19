@@ -1,11 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SafeAreaView, Alert, KeyboardAvoidingView, Platform, View, Text, TouchableOpacity, Animated } from 'react-native';
+import {
+  SafeAreaView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 // Import components and services
 import { AppHeader, Button, Footer, OTPInput } from '../components';
 import { SmsService } from '../services';
-import { useKeyboard, useEntranceAnimation, useStaggeredAnimation } from '../hooks';
+import {
+  useKeyboard,
+  useEntranceAnimation,
+  useStaggeredAnimation,
+} from '../hooks';
 import { layoutStyles, textStyles, otpStyles } from '../styles';
 import { validateOTP } from '../utils';
 import { ANIMATION, SCREENS } from '../constants';
@@ -15,7 +28,7 @@ export default function OTPScreen({ route, navigation }) {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
-  
+
   // Custom hooks
   const isKeyboardVisible = useKeyboard();
   const { animatedStyle } = useEntranceAnimation();
@@ -37,7 +50,7 @@ export default function OTPScreen({ route, navigation }) {
         toValue: 1,
         duration: ANIMATION.fast,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
 
     // Auto-focus next input
@@ -54,7 +67,7 @@ export default function OTPScreen({ route, navigation }) {
 
   const handleSubmit = async () => {
     const otpCode = otp.join('');
-    
+
     if (!validateOTP(otpCode)) {
       Alert.alert('Error', 'Please enter complete OTP');
       return;
@@ -87,10 +100,10 @@ export default function OTPScreen({ route, navigation }) {
   return (
     <SafeAreaView style={layoutStyles.container}>
       <StatusBar style="light" />
-      
+
       <AppHeader />
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
@@ -98,9 +111,10 @@ export default function OTPScreen({ route, navigation }) {
           <View style={layoutStyles.formContainer}>
             <Text style={textStyles.title}>Enter OTP verification code</Text>
             <Text style={textStyles.subtitle}>
-              Verification number has been sent to{'\n'}{phoneNumber}
+              Verification number has been sent to{'\n'}
+              {phoneNumber}
             </Text>
-            
+
             {/* OTP Input Boxes */}
             <View style={otpStyles.otpContainer}>
               {otp.map((digit, index) => (
@@ -109,30 +123,31 @@ export default function OTPScreen({ route, navigation }) {
                   ref={(ref) => (inputRefs.current[index] = ref)}
                   value={digit}
                   onChangeText={(text) => handleOtpChange(text, index)}
-                  onKeyPress={({ nativeEvent }) => handleBackspace(nativeEvent.key, index)}
+                  onKeyPress={({ nativeEvent }) =>
+                    handleBackspace(nativeEvent.key, index)
+                  }
                   animatedStyle={{
-                    transform: [{ scale: otpBoxAnims[index] }]
+                    transform: [{ scale: otpBoxAnims[index] }],
                   }}
                 />
               ))}
             </View>
-            
+
             {/* Resend Link */}
             <View style={otpStyles.resendContainer}>
-              <Text style={otpStyles.resendText}>Don't receive the code ? </Text>
+              <Text style={otpStyles.resendText}>
+                Don&apos;t receive the code ?{' '}
+              </Text>
               <TouchableOpacity onPress={handleResend} disabled={isResending}>
                 <Text style={otpStyles.resendLink}>
                   {isResending ? 'Sending...' : 'Resend'}
                 </Text>
               </TouchableOpacity>
             </View>
-            
-            <Button 
-              title="Proceed"
-              onPress={handleSubmit}
-            />
+
+            <Button title="Proceed" onPress={handleSubmit} />
           </View>
-          
+
           <Footer visible={!isKeyboardVisible} />
         </Animated.View>
       </KeyboardAvoidingView>

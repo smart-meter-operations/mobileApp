@@ -10,7 +10,7 @@ export const APP_CONFIG = {
 // Screen Names
 export const SCREENS = {
   LOGIN: 'Login',
-  OTP: 'OTP', 
+  OTP: 'OTP',
   SUCCESS: 'Success',
   DASHBOARD: 'Dashboard',
   MAP: 'MapScreen',
@@ -22,13 +22,13 @@ export const COLORS = {
   primary: '#3b82f6',
   primaryDark: '#2563eb',
   primaryLight: '#60a5fa',
-  
+
   // Background colors
   background: '#f8fafc',
   surface: '#ffffff',
   white: '#ffffff',
   headerBackground: '#334155',
-  
+
   // Text colors
   text: '#1e293b',
   textPrimary: '#1e293b',
@@ -36,7 +36,7 @@ export const COLORS = {
   textMuted: '#94a3b8',
   textLight: '#cbd5e1',
   textWhite: '#ffffff',
-  
+
   // Status colors
   success: '#10b981',
   successLight: '#dcfce7',
@@ -46,13 +46,13 @@ export const COLORS = {
   warningLight: '#fef3c7',
   info: '#06b6d4',
   infoLight: '#cffafe',
-  
+
   // Border colors
   border: '#e2e8f0',
   borderLight: '#f1f5f9',
   borderActive: '#3b82f6',
   gray: '#6b7280',
-  
+
   // Shadow colors
   shadow: '#1e293b',
   shadowLight: '#cbd5e1',

@@ -5,7 +5,7 @@ import { APP_CONFIG } from '../constants';
 
 const Footer = ({ visible = true, style = {} }) => {
   if (!visible) return null;
-  
+
   return (
     <View style={[footerStyles.footer, style]}>
       <Text style={footerStyles.footerText}>
