@@ -1,0 +1,21 @@
+WATTLY App Icon - Base64 Placeholder
+
+This file contains a simple base64-encoded PNG that represents the WATTLY electric meter app icon concept.
+
+The actual icon should be created using the specifications in ICON_DESIGN_SPECS.md
+
+Key elements to include:
+1. Blue gradient background
+2. Electric meter housing
+3. Digital display with numbers
+4. WATTLY branding text
+5. Connection terminals
+6. Professional, modern appearance
+
+To create the actual icons:
+1. Use the SVG design in app-icon.svg as reference
+2. Create 1024x1024px PNG file
+3. Generate all required sizes using online tools
+4. Replace the existing icon files in assets/
+
+Current placeholder represents the concept but should be replaced with professional design.

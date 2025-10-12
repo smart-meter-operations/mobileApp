@@ -1,204 +1,290 @@
-// Mock data service - will be replaced with actual API calls
-import { STATUS, TASK_TYPES } from '../constants';
+import databaseService from './databaseService';
+import { ApiService } from './apiService';
+import networkService from './networkService';
+import syncService from './syncService';
 
-// Mock installation data - this will come from your backend API
-export const mockInstallationData = [
-  {
-    id: '1',
-    name: 'Ranjit Das',
-    address: '21A, Beliaghata Main Road, Phool...',
-    status: STATUS.COMPLETED,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543210',
-    coordinates: { lat: 22.5726, lng: 88.3639 },
-    assignedDate: '2024-01-15',
-    completedDate: '2024-01-16',
-  },
-  {
-    id: '2',
-    name: 'Amit Roy',
-    address: '45, S.P. Mukherjee Road, Kalighat,',
-    status: STATUS.COMPLETED,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543211',
-    coordinates: { lat: 22.5244, lng: 88.3426 },
-    assignedDate: '2024-01-14',
-    completedDate: '2024-01-15',
-  },
-  {
-    id: '3',
-    name: 'Sandip Banerj...',
-    address: '54, S.P. Mukherjee Road, Kalighat,',
-    status: STATUS.PENDING,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543212',
-    coordinates: { lat: 22.5244, lng: 88.3426 },
-    assignedDate: '2024-01-17',
-    completedDate: null,
-  },
-  {
-    id: '4',
-    name: 'Arun G',
-    address: '88, Lake View Road, Jodhpur Park',
-    status: STATUS.PENDING,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543213',
-    coordinates: { lat: 22.4989, lng: 88.3417 },
-    assignedDate: '2024-01-18',
-    completedDate: null,
-  },
-  {
-    id: '5',
-    name: 'Vivek Kumar',
-    address: '45, S.P. Mukherjee Road, Kalighat,',
-    status: STATUS.PENDING,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543214',
-    coordinates: { lat: 22.5244, lng: 88.3426 },
-    assignedDate: '2024-01-19',
-    completedDate: null,
-  },
-  {
-    id: '6',
-    name: 'Ram Tiwari',
-    address: '16B, Raja Ram Mohan Roy Road',
-    status: STATUS.PENDING,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543215',
-    coordinates: { lat: 22.5697, lng: 88.3697 },
-    assignedDate: '2024-01-20',
-    completedDate: null,
-  },
-  {
-    id: '7',
-    name: 'Lalita Aggarwal',
-    address: '22, S.P. Mukherjee Road, Kalighat,',
-    status: STATUS.PENDING,
-    taskType: TASK_TYPES.INSTALLATION,
-    phoneNumber: '+91 9876543216',
-    coordinates: { lat: 22.5244, lng: 88.3426 },
-    assignedDate: '2024-01-21',
-    completedDate: null,
-  },
-];
-
-// Mock survey data
-export const mockSurveyData = [
-  {
-    id: 's1',
-    name: 'Priya Sharma',
-    address: '12, Park Street, Central Kolkata',
-    status: STATUS.COMPLETED,
-    taskType: TASK_TYPES.SURVEY,
-    phoneNumber: '+91 9876543220',
-    coordinates: { lat: 22.5535, lng: 88.3619 },
-    assignedDate: '2024-01-10',
-    completedDate: '2024-01-11',
-  },
-  {
-    id: 's2',
-    name: 'Rahul Ghosh',
-    address: '34, Rashbehari Avenue, South Kolkata',
-    status: STATUS.COMPLETED,
-    taskType: TASK_TYPES.SURVEY,
-    phoneNumber: '+91 9876543221',
-    coordinates: { lat: 22.5205, lng: 88.3532 },
-    assignedDate: '2024-01-09',
-    completedDate: '2024-01-10',
-  },
-  // Add more survey items...
-];
-
-// Mock user data
-export const mockUserData = {
-  id: 'user_123',
-  name: 'Rajesh',
-  role: 'Surveyor / Installer',
-  avatar: '👨‍💼',
-  status: 'offline',
-  phoneNumber: '+91 8981675554',
-  employeeId: 'EMP001',
-  department: 'Field Operations',
-};
-
-// Data service functions that will be replaced with actual API calls
+// Data service functions that work with local database and sync with remote API
 export class DataService {
-  // Get dashboard stats
+  // Get dashboard stats - try local first, fallback to API
   static async getDashboardStats() {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const installations = mockInstallationData;
-    const surveys = mockSurveyData;
-
-    const installationStats = {
-      total: installations.length,
-      completed: installations.filter(
-        (item) => item.status === STATUS.COMPLETED
-      ).length,
-      pending: installations.filter((item) => item.status === STATUS.PENDING)
-        .length,
-    };
-
-    const surveyStats = {
-      total: surveys.length,
-      completed: surveys.filter((item) => item.status === STATUS.COMPLETED)
-        .length,
-      pending: surveys.filter((item) => item.status === STATUS.PENDING).length,
-    };
-
-    return {
-      installation: installationStats,
-      survey: surveyStats,
-    };
+    try {
+      // Try to get stats from local database first
+      const localStats = await databaseService.getDashboardStats();
+      
+      if (localStats && localStats.lastUpdated) {
+        return localStats;
+      }
+      
+      // If no local data, fetch from API (if online)
+      const networkState = await networkService.getNetworkState();
+      if (networkState.isInternetReachable) {
+        const apiResponse = await ApiService.getDashboardStats();
+        if (apiResponse.success) {
+          // Save to local database
+          await databaseService.updateDashboardStats({
+            survey_total: apiResponse.data.survey.total,
+            survey_completed: apiResponse.data.survey.completed,
+            survey_pending: apiResponse.data.survey.pending,
+            installation_total: apiResponse.data.installation.total,
+            installation_completed: apiResponse.data.installation.completed,
+            installation_pending: apiResponse.data.installation.pending,
+          });
+          return apiResponse.data;
+        }
+      }
+      
+      // Return default stats if both local and API fail
+      return {
+        survey: { total: 0, completed: 0, pending: 0 },
+        installation: { total: 0, completed: 0, pending: 0 },
+        lastUpdated: null,
+      };
+    } catch (error) {
+      console.error('Get dashboard stats failed:', error);
+      return {
+        survey: { total: 0, completed: 0, pending: 0 },
+        installation: { total: 0, completed: 0, pending: 0 },
+        lastUpdated: null,
+      };
+    }
   }
 
-  // Get installation list
+  // Get dashboard counters for home KPI cards
+  static async getDashboardCounters() {
+    try {
+      // Update dashboard counters based on actual installation data
+      await databaseService.updateDashboardCountersFromInstallations();
+      
+      const counters = await databaseService.getDashboardCounters();
+      return counters;
+    } catch (error) {
+      console.error('Get dashboard counters failed:', error);
+      return {
+        totalCompleted: 0,
+        consumerIndexing: { assigned: 0, draft: 0, completed: 0, toSync: 0 },
+        meterInstallation: { assigned: 0, draft: 0, completed: 0, toSync: 0 },
+        lastUpdated: null,
+      };
+    }
+  }
+
+  // Get installation list - try local first, fallback to API
   static async getInstallationList() {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return mockInstallationData;
+    try {
+      // Try to get installations from local database first
+      const localInstallations = await databaseService.getInstallations();
+      
+      if (localInstallations && localInstallations.length > 0) {
+        return localInstallations;
+      }
+      
+      // If no local data, fetch from API (if online)
+      const networkState = await networkService.getNetworkState();
+      if (networkState.isInternetReachable) {
+        const apiResponse = await ApiService.getInstallations();
+        if (apiResponse.success) {
+          // Save to local database
+          for (const installation of apiResponse.data) {
+            await databaseService.saveInstallation(installation);
+          }
+          return apiResponse.data;
+        }
+      }
+      
+      // Return empty array if both local and API fail
+      return [];
+    } catch (error) {
+      console.error('Get installation list failed:', error);
+      return [];
+    }
   }
 
-  // Get survey list
+  // Get survey list - try local captures, fallback to API
   static async getSurveyList() {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return mockSurveyData;
+    try {
+      // Try to get captures from local database first
+      const localCaptures = await databaseService.getCaptures();
+      
+      // Transform captures to survey format
+      const surveys = localCaptures.map(capture => ({
+        id: capture.id,
+        name: `Survey ${capture.id}`,
+        address: 'Local Capture',
+        status: 'completed',
+        taskType: 'survey',
+        phoneNumber: '',
+        coordinates: { lat: capture.latitude, lng: capture.longitude },
+        assignedDate: capture.captured_at,
+        completedDate: capture.captured_at,
+      }));
+      
+      if (surveys.length > 0) {
+        return surveys;
+      }
+      
+      // If no local data, fetch from API (if online)
+      const networkState = await networkService.getNetworkState();
+      if (networkState.isInternetReachable) {
+        const apiResponse = await ApiService.getSurveys();
+        if (apiResponse.success) {
+          return apiResponse.data;
+        }
+      }
+      
+      // Return empty array if both local and API fail
+      return [];
+    } catch (error) {
+      console.error('Get survey list failed:', error);
+      return [];
+    }
   }
 
-  // Get user profile
+  // Get user profile - try local first, fallback to API
   static async getUserProfile() {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return mockUserData;
+    try {
+      // In a real app, we would get the current user's phone number
+      // For now, we'll use a placeholder
+      const currentUserPhone = '+91 8981675554'; // This should come from auth context
+      
+      // Try to get user from local database first
+      const localUser = await databaseService.getUser(currentUserPhone);
+      
+      if (localUser) {
+        return {
+          id: localUser.id,
+          name: localUser.name,
+          role: localUser.role,
+          avatar: localUser.avatar,
+          status: localUser.status,
+          phoneNumber: localUser.phone,
+          employeeId: 'EMP001', // This would come from API in real implementation
+          department: 'Field Operations',
+        };
+      }
+      
+      // If no local data, fetch from API (if online)
+      const networkState = await networkService.getNetworkState();
+      if (networkState.isInternetReachable) {
+        const apiResponse = await ApiService.getUserProfile();
+        if (apiResponse.success) {
+          // Save to local database
+          await databaseService.saveUser({
+            phone: apiResponse.data.phoneNumber,
+            name: apiResponse.data.name,
+            role: apiResponse.data.role,
+            status: apiResponse.data.status,
+            avatar: apiResponse.data.avatar,
+          });
+          return apiResponse.data;
+        }
+      }
+      
+      // Return mock user if both local and API fail
+      return {
+        id: 'user_123',
+        name: 'Rajesh',
+        role: 'Surveyor / Installer',
+        avatar: '👨‍💼',
+        status: 'offline',
+        phoneNumber: '+91 8981675554',
+        employeeId: 'EMP001',
+        department: 'Field Operations',
+      };
+    } catch (error) {
+      console.error('Get user profile failed:', error);
+      return {
+        id: 'user_123',
+        name: 'Rajesh',
+        role: 'Surveyor / Installer',
+        avatar: '👨‍💼',
+        status: 'offline',
+        phoneNumber: '+91 8981675554',
+        employeeId: 'EMP001',
+        department: 'Field Operations',
+      };
+    }
   }
 
-  // Update task status
+  // Update task status - save locally and queue for sync
   static async updateTaskStatus(taskId, newStatus) {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    // In real implementation, this would make an API call
-    console.log(`Updating task ${taskId} to status ${newStatus}`);
-    return { success: true, taskId, newStatus };
+    try {
+      // Update in local database
+      const result = await databaseService.updateInstallationStatus(taskId, newStatus);
+      
+      if (result.success) {
+        // Trigger sync if online
+        const networkState = await networkService.getNetworkState();
+        if (networkState.isInternetReachable) {
+          setTimeout(() => {
+            syncService.syncOnDemand();
+          }, 1000);
+        }
+        
+        return { success: true, taskId, newStatus };
+      } else {
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      console.error('Update task status failed:', error);
+      return { success: false, error: error.message };
+    }
   }
 
-  // Create new installation task
+  // Create new installation task - save locally and queue for sync
   static async createInstallationTask(taskData) {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    // In real implementation, this would make an API call
-    const newTask = {
-      id: `new_${Date.now()}`,
-      ...taskData,
-      status: STATUS.PENDING,
-      assignedDate: new Date().toISOString().split('T')[0],
-      completedDate: null,
-    };
-
-    console.log('Creating new installation task:', newTask);
-    return { success: true, task: newTask };
+    try {
+      // Save to local database
+      const result = await databaseService.saveInstallation(taskData);
+      
+      if (result.success) {
+        const newTask = {
+          id: result.id,
+          ...taskData,
+          status: 'pending',
+          assignedDate: new Date().toISOString().split('T')[0],
+          completedDate: null,
+        };
+        
+        // Trigger sync if online
+        const networkState = await networkService.getNetworkState();
+        if (networkState.isInternetReachable) {
+          setTimeout(() => {
+            syncService.syncOnDemand();
+          }, 1000);
+        }
+        
+        return { success: true, task: newTask };
+      } else {
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      console.error('Create installation task failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  // Save capture data - save locally and queue for sync
+  static async saveCaptureData(captureData) {
+    try {
+      // Save to local database
+      const result = await databaseService.saveCapture(captureData);
+      
+      if (result.success) {
+        // Trigger sync if online
+        const networkState = await networkService.getNetworkState();
+        if (networkState.isInternetReachable) {
+          setTimeout(() => {
+            syncService.syncOnDemand();
+          }, 1000);
+        }
+        
+        return { success: true, captureId: result.id };
+      } else {
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      console.error('Save capture data failed:', error);
+      return { success: false, error: error.message };
+    }
   }
 }

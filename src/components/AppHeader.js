@@ -8,7 +8,7 @@ const AppHeader = ({ style = {} }) => {
     <View style={[headerStyles.header, style]}>
       <View style={headerStyles.logoContainer}>
         <View style={headerStyles.logoIcon}>
-          <Text style={headerStyles.logoIconText}>⚙</Text>
+          <Text style={headerStyles.logoIconText}>⚡</Text>
         </View>
         <Text style={headerStyles.logoText}>{APP_CONFIG.name}</Text>
       </View>

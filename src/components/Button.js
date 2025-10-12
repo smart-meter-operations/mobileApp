@@ -35,7 +35,7 @@ const Button = forwardRef(
         style={[buttonStyle, disabledStyle, style]}
         onPress={onPress}
         disabled={disabled || loading}
-        activeOpacity={0.8}
+        activeOpacity={0.7} // Material UI active opacity
         {...props}
       >
         <Text style={[buttonTextStyle, textStyle]}>

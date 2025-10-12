@@ -5,14 +5,14 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
 
 // Import services
@@ -26,14 +26,14 @@ import { COLORS } from '../constants';
 
 // Define COLORS that might be missing
 const SAFE_COLORS = {
-  primary: '#3b82f6',
-  background: '#f8fafc',
-  text: '#1e293b',
-  textSecondary: '#64748b',
-  gray: '#6b7280',
+  primary: '#2b2b2b', // Dark grey instead of black
+  background: '#f5f5f5', // Light grey background
+  text: '#212121', // Dark text
+  textSecondary: '#757575', // Medium grey text
+  gray: '#9e9e9e', // Light grey
   white: '#ffffff',
-  success: '#10b981',
-  error: '#ef4444',
+  success: '#4caf50', // Green
+  error: '#f44336', // Red
   ...COLORS, // Spread existing colors
 };
 
@@ -47,6 +47,11 @@ const SimpleButton = ({ title, onPress, style, disabled }) => (
         paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
       },
       style,
     ]}

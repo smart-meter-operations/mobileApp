@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 
 // App Configuration Constants
 export const APP_CONFIG = {
-  name: 'SmartGrid',
-  companyName: 'Energy Corp.',
+  name: 'WATTLY',
+  companyName: '',
   version: '1.0.0',
 };
 
@@ -11,65 +11,82 @@ export const APP_CONFIG = {
 export const SCREENS = {
   LOGIN: 'Login',
   OTP: 'OTP',
+  OTP_API: 'OTP_API',
   SUCCESS: 'Success',
   DASHBOARD: 'Dashboard',
   MAP: 'MapScreen',
+  CONSUMER_INDEXING_FORM: 'ConsumerIndexingForm',
 };
 
-// Colors
+// Colors - ERPNext-like light theme with Material UI principles
 export const COLORS = {
-  // Primary colors
-  primary: '#3b82f6',
-  primaryDark: '#2563eb',
-  primaryLight: '#60a5fa',
-
-  // Background colors
-  background: '#f8fafc',
-  surface: '#ffffff',
+  // Primary colors (ERPNext inspired)
+  primary: '#2b2b2b', // Dark grey for primary elements
+  primaryDark: '#1a1a1a', // Darker grey
+  primaryLight: '#404040', // Light grey
+  secondary: '#666666', // Medium grey
+  
+  // ERPNext accent colors
+  uberAccent: '#2b2b2b', // Dark grey accent
+  uberGreen: '#4caf50', // Success green like ERPNext
+  
+  // Background colors (Light theme)
+  background: '#f5f5f5', // Light grey background
+  surface: '#ffffff', // White surface
+  card: '#ffffff', // White card background
   white: '#ffffff',
-  headerBackground: '#334155',
+  headerBackground: '#ffffff', // White header
 
-  // Text colors
-  text: '#1e293b',
-  textPrimary: '#1e293b',
-  textSecondary: '#64748b',
-  textMuted: '#94a3b8',
-  textLight: '#cbd5e1',
+  // Text colors (Dark text on light background)
+  text: '#212121', // Dark text
+  textPrimary: '#212121', // Primary dark text
+  textSecondary: '#757575', // Medium grey text
+  textMuted: '#9e9e9e', // Light grey text
+  textLight: '#bdbdbd', // Very light grey text
   textWhite: '#ffffff',
 
-  // Status colors
-  success: '#10b981',
-  successLight: '#dcfce7',
-  error: '#ef4444',
-  errorLight: '#fecaca',
-  warning: '#f59e0b',
-  warningLight: '#fef3c7',
-  info: '#06b6d4',
-  infoLight: '#cffafe',
+  // Status colors (ERPNext inspired)
+  success: '#4caf50', // Green
+  successLight: '#e8f5e9', // Light green
+  error: '#f44336', // Red
+  errorLight: '#ffebee', // Light red
+  warning: '#ff9800', // Orange
+  warningLight: '#fff3e0', // Light orange
+  info: '#2196f3', // Blue
+  infoLight: '#e3f2fd', // Light blue
 
-  // Border colors
-  border: '#e2e8f0',
-  borderLight: '#f1f5f9',
-  borderActive: '#3b82f6',
-  gray: '#6b7280',
+  // Border colors (Light theme)
+  border: '#e0e0e0', // Light grey border
+  borderLight: '#eeeeee', // Very light grey border
+  borderActive: '#2b2b2b', // Dark grey active border
+  gray: '#9e9e9e', // Medium grey
 
-  // Shadow colors
-  shadow: '#1e293b',
-  shadowLight: '#cbd5e1',
+  // Shadow colors (Light theme)
+  shadow: '#000000',
+  shadowLight: '#f5f5f5',
+  
+  // Neumorphic colors (for ConsumerIndexingFormScreen only)
+  neumorphic: {
+    primary: '#E0E5EC', // Main background color (light, off-white grey)
+    lightShadow: '#FFFFFF', // Light shadow color
+    darkShadow: '#A3B1C6', // Dark shadow color
+    textPrimary: '#3D3D3D', // Primary text color (dark grey)
+    accent: '#4B72D3', // Accent color (muted blue)
+  }
 };
 
-// Typography
+// Typography (Material UI inspired)
 export const TYPOGRAPHY = {
   fontSizes: {
-    xs: 10,
-    sm: 12,
-    base: 14,
-    lg: 16,
-    xl: 18,
-    '2xl': 20,
-    '3xl': 22,
-    '4xl': 24,
-    '5xl': 32,
+    xs: 12,
+    sm: 14,
+    base: 16,
+    lg: 18,
+    xl: 20,
+    '2xl': 24,
+    '3xl': 30,
+    '4xl': 36,
+    '5xl': 48,
   },
   fontWeights: {
     normal: '400',
@@ -78,29 +95,35 @@ export const TYPOGRAPHY = {
     bold: '700',
   },
   lineHeights: {
-    tight: 20,
-    normal: 22,
-    relaxed: 24,
+    tight: 1.2,
+    normal: 1.4,
+    relaxed: 1.6,
+  },
+  // Material UI font family
+  fontFamily: {
+    regular: 'Roboto-Regular',
+    medium: 'Roboto-Medium',
+    bold: 'Roboto-Bold',
   },
 };
 
-// Spacing
+// Spacing (Material UI inspired)
 export const SPACING = {
   xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 32,
-  '4xl': 40,
-  '5xl': 48,
-  '6xl': 60,
+  xl: 24,
+  '2xl': 32,
+  '3xl': 40,
+  '4xl': 48,
+  '5xl': 64,
+  '6xl': 80,
 };
 
-// Border Radius
+// Border Radius (Material UI inspired)
 export const BORDER_RADIUS = {
-  sm: 6,
+  sm: 4,
   md: 8,
   lg: 12,
   xl: 16,
@@ -109,7 +132,7 @@ export const BORDER_RADIUS = {
   full: 999,
 };
 
-// Animation Durations
+// Animation Durations (Material UI inspired)
 export const ANIMATION = {
   fast: 150,
   normal: 300,
@@ -123,9 +146,10 @@ export const ANIMATION = {
 
 // API Configuration (for future use)
 export const API_CONFIG = {
-  baseUrl: process.env.API_BASE_URL || 'https://api.smartgrid.com',
+  baseUrl: process.env.API_BASE_URL || 'https://api.wattly.com',
   timeout: 10000,
   retryAttempts: 3,
+  otpTimeout: 30000, // 30 seconds for OTP API calls
 };
 
 // Device dimensions
@@ -140,10 +164,4 @@ export const STATUS = {
   PENDING: 'pending',
   IN_PROGRESS: 'in_progress',
   CANCELLED: 'cancelled',
-};
-
-// Task types
-export const TASK_TYPES = {
-  SURVEY: 'survey',
-  INSTALLATION: 'installation',
 };

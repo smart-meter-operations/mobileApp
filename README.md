@@ -1,6 +1,6 @@
 # Smart Meter Operations (SMOV0.1) 
 
-A comprehensive React Native mobile application for Smart Meter Operations featuring advanced authentication, real-time capture capabilities, and offline-first architecture.
+A comprehensive React Native mobile application for Smart Meter Operations featuring advanced authentication, real-time capture capabilities, and offline-first architecture with intelligent data synchronization.
 
 ## Project Structure
 
@@ -41,6 +41,8 @@ src/
 │   ├── permissionsService.js # Device permissions management
 │   ├── networkService.js # Network detection & bandwidth testing
 │   ├── databaseService.js # SQLite offline database operations
+│   ├── syncService.js   # Data synchronization service
+│   ├── backgroundService.js # Background task management
 │   ├── smsService.js    # SMS/OTP service (legacy)
 │   └── index.js         # Export all services
 ├── styles/              # Modular styling
@@ -48,6 +50,7 @@ src/
 │   ├── dashboardStyles.js # Dashboard-specific styles
 │   └── index.js         # Export all styles
 ├── utils/               # Utility functions
+│   ├── syncUtils.js     # Synchronization utilities
 │   └── index.js         # Validation, formatting, data utilities
 └── index.js             # Main src export
 ```
@@ -72,11 +75,14 @@ src/
 - **Toggle Controls**: Show/hide different infrastructure types
 - **Custom Icons**: Relevant icons for each infrastructure type
 
-### 🗄️ Offline-First Architecture
+### 🗄️ Offline-First Architecture with Intelligent Sync
 - **SQLite Database**: Robust local data storage with sync capabilities
 - **Offline Operations**: Full functionality without internet connectivity
 - **Data Synchronization**: Intelligent sync when connection available
 - **Queue Management**: Background sync queue for pending operations
+- **Scheduled Sync**: Automatic synchronization at configured intervals
+- **On-Demand Sync**: Manual sync trigger for immediate data upload
+- **Background Sync**: Continues to sync data even when app is in background
 
 ### 🎨 Modern UI/UX Design
 - **Animated User Header**: Auto-collapsing header with smooth transitions
@@ -147,6 +153,45 @@ const captureData = {
   signal_strength: JSON.stringify(network.signal)
 };
 const result = await DatabaseService.saveCapture(captureData);
+```
+
+### Data Synchronization
+
+The application now features a comprehensive synchronization system that handles both automatic and manual data synchronization:
+
+#### Sync Service Features
+- **Automatic Sync**: Scheduled synchronization every 15 minutes when online
+- **On-Demand Sync**: Manual trigger for immediate data upload
+- **Background Sync**: Continues to sync data even when app is in background
+- **Priority Queue**: High-priority items synced first
+- **Retry Logic**: Automatic retry for failed sync operations
+- **Batch Processing**: Efficient batch processing of sync items
+- **Conflict Resolution**: Handles sync conflicts gracefully
+
+#### Sync Configuration
+```javascript
+// Configure sync settings
+syncService.configure({
+  autoSync: true,           // Enable/disable automatic sync
+  syncIntervalMinutes: 15,  // Sync interval in minutes
+  maxRetries: 3,            // Max retry attempts per item
+  batchSize: 50             // Number of items to sync in one batch
+});
+```
+
+#### Manual Sync Operations
+```javascript
+// Perform on-demand sync
+import { performManualSync } from './src/utils/syncUtils';
+
+const syncResult = await performManualSync();
+console.log(`Synced ${syncResult.syncedRecords} records`);
+
+// Perform force sync of all pending items
+import { performForceSync } from './src/utils/syncUtils';
+
+const forceSyncResult = await performForceSync();
+console.log(`Force synced ${forceSyncResult.syncedRecords} records`);
 ```
 
 ### API Integration Guide
@@ -490,6 +535,8 @@ export const useCustomHook = () => {
   "expo-location": "~18.0.2",
   "expo-local-authentication": "~15.0.2",
   "expo-sqlite": "~15.0.3",
+  "expo-background-fetch": "~15.0.0",
+  "expo-task-manager": "~15.0.0",
   "react-native-safe-area-context": "^5.6.1",
   "@react-native-community/netinfo": "^11.4.1"
 }
@@ -529,6 +576,7 @@ npm start
 3. **✅ Camera Integration**: Photo capture with GPS and network metadata
 4. **✅ Real-time Monitoring**: Network quality and sync status indicators
 5. **✅ Modern UI**: Animated components and safe area handling
+6. **✅ Data Synchronization**: Automatic and manual sync with background processing
 
 ### Planned Features 🚧
 1. **API Integration**: Backend synchronization service
@@ -543,6 +591,7 @@ npm start
 - **Testing**: Unit test framework ready for implementation
 - **Security**: Biometric authentication and secure data storage
 - **Offline-First**: Full functionality without internet connectivity
+- **Sync Efficiency**: Batch processing and priority queuing for optimal sync performance
 
 ## Troubleshooting
 
@@ -574,11 +623,11 @@ if (!biometricInfo.biometricSupport.hasHardware) {
 ```
 
 ### Color System Safety
-```javascript
+```
 // Use SAFE_COLORS to prevent undefined references
 const SAFE_COLORS = {
-  primary: '#3b82f6',
-  background: '#f8fafc',
+  primary: '#2b2b2b',
+  background: '#f5f5f5',
   // ... fallback colors
   ...COLORS // Spread existing colors
 };
@@ -613,7 +662,7 @@ For detailed information about these tools and how to use them, see [CODE_REVIEW
 6. **Color Safety**: Use SAFE_COLORS for fallback color handling
 
 ### Code Standards
-```javascript
+```
 // ✅ Correct React import
 import React, { useEffect, useRef, useState } from 'react';
 

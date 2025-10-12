@@ -6,6 +6,11 @@ import { APP_CONFIG } from '../constants';
 const Footer = ({ visible = true, style = {} }) => {
   if (!visible) return null;
 
+  // Only show footer if there's a company name
+  if (!APP_CONFIG.companyName || APP_CONFIG.companyName.trim() === '') {
+    return null;
+  }
+
   return (
     <View style={[footerStyles.footer, style]}>
       <Text style={footerStyles.footerText}>

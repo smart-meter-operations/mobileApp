@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   StyleSheet,
   Alert,
   ActivityIndicator,
@@ -10,6 +9,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 // Import services and components
@@ -43,10 +43,14 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
         return;
       }
 
-      // Start authentication process
-      setTimeout(() => {
-        authenticateUser();
-      }, 1000);
+      // For web platform, we don't need to auto-start authentication
+      // as it's not available anyway
+      if (Platform.OS !== 'web') {
+        // Start authentication process
+        setTimeout(() => {
+          authenticateUser();
+        }, 1000);
+      }
     } catch (error) {
       console.error('Initialize authentication failed:', error);
       setError('Failed to initialize authentication');
@@ -59,8 +63,10 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Authenticating user, Platform:', Platform.OS);
 
       const result = await PhoneUnlockService.authenticate();
+      console.log('Authentication result:', result);
 
       if (result.success) {
         handleAuthenticationSuccess();
@@ -81,6 +87,8 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
   };
 
   const handleSkip = () => {
+    console.log('Skip button pressed, Platform:', Platform.OS);
+
     Alert.alert(
       'Skip Authentication',
       'Phone unlock authentication provides additional security. Are you sure you want to skip?',
@@ -88,7 +96,14 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Skip',
-          onPress: () => navigation.navigate('Success'),
+          onPress: () => {
+            if (Platform.OS === 'web') {
+              if (document && document.activeElement) {
+                document.activeElement.blur();
+              }
+            }
+            navigation.navigate('Success');
+          },
         },
       ]
     );
@@ -159,6 +174,22 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
     }
   };
 
+  // For web platform, show a demo message
+  const renderWebDemoMessage = () => {
+    if (Platform.OS !== 'web') return null;
+
+    return (
+      <View style={styles.webDemoContainer}>
+        <Ionicons name="information-circle" size={24} color={COLORS.info} />
+        <Text style={styles.webDemoTitle}>Web Demo Mode</Text>
+        <Text style={styles.webDemoText}>
+          Biometric authentication is not available in web browsers. 
+          Click "Skip" to proceed to the next screen.
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -178,6 +209,9 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
 
         {/* Main Content */}
         <View style={styles.mainContent}>
+          {/* Web Demo Message */}
+          {renderWebDemoMessage()}
+
           {/* Icon */}
           <View style={styles.iconContainer}>
             <Ionicons
@@ -245,7 +279,7 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
             )}
 
           {/* No Biometric Hardware */}
-          {authInfo && !authInfo.biometricSupport.hasHardware && (
+          {authInfo && !authInfo.biometricSupport.hasHardware && Platform.OS !== 'web' && (
             <View style={styles.infoContainer}>
               <Ionicons
                 name="information-circle"
@@ -257,6 +291,16 @@ const PhoneUnlockScreen = ({ navigation, route }) => {
                 device PIN/Pattern instead.
               </Text>
             </View>
+          )}
+
+          {/* Web Platform Authentication Button */}
+          {Platform.OS === 'web' && (
+            <Button
+              title="Authenticate (Demo)"
+              onPress={authenticateUser}
+              style={styles.demoButton}
+              disabled={loading}
+            />
           )}
         </View>
 
@@ -281,6 +325,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  demoButton: {
+    marginTop: SPACING.lg,
+    minWidth: 160,
   },
   description: {
     color: COLORS.textSecondary,
@@ -420,6 +468,26 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeights.bold,
     marginBottom: SPACING.lg,
     textAlign: 'center',
+  },
+  webDemoContainer: {
+    alignItems: 'center',
+    backgroundColor: COLORS.infoLight,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  webDemoText: {
+    color: COLORS.info,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  webDemoTitle: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    marginTop: SPACING.sm,
   },
 });
 

@@ -8,3 +8,7 @@ export { default as OTPInput } from './OTPInput';
 export { default as BottomNavigation } from './BottomNavigation';
 export { default as List, ListItem } from './List';
 export { default as AnimatedUserHeader } from './AnimatedUserHeader';
+export { default as MapModal } from './MapModal';
+export { default as QuickActionButton } from './QuickActionButton';
+export { default as PerformanceMetrics } from './PerformanceMetrics';
+export { default as RecentActivities } from './RecentActivities';

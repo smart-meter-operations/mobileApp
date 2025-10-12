@@ -1,33 +1,80 @@
 {
   "expo": {
-    "name": "Smart Meter Operations",
-    "slug": "smart-meter-operations",
+    "name": "WATTLY",
+    "slug": "wattly",
     "version": "1.0.0",
-    "sdkVersion": "53.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e3a8a"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.swapnilpande.smartmeteroperations",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "fetch"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e3a8a"
       },
-      "package": "com.swavedooja.smartmeteroperations",
-      "versionCode": 1
+      "package": "com.swapnilpande.smartmeteroperations",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
+      ],
+      "usesCleartextTraffic": true,
+      "networkSecurityConfig": {
+        "domain-config": [
+          {
+            "domain": "bff-alb-927359164.ap-south-1.elb.amazonaws.com",
+            "includeSubdomains": true,
+            "cleartextTrafficPermitted": true
+          },
+          {
+            "domain": "sponge-balanced-cat.ngrok-free.app",
+            "includeSubdomains": true,
+            "cleartextTrafficPermitted": true
+          }
+        ]
+      }
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      "expo-sqlite"
+      "expo-font",
+      "expo-asset",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
+        "expo-background-fetch",
+        {
+          "minimumInterval": 15,
+          "stopOnTerminate": false,
+          "startOnBoot": true
+        }
+      ]
     ],
     "extra": {
       "eas": {
-        "projectId": "4c336566-3c5c-4db6-a68d-538e0e8b95c0"
+        "projectId": "ca18d21b-a06a-46f7-8f2b-fa31cab503d0"
       }
     },
     "owner": "swavedooja"

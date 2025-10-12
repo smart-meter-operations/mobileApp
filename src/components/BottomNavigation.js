@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { dashboardStyles } from '../styles';
-import { SCREENS } from '../constants';
+import { SCREENS, COLORS } from '../constants';
 
 const BottomTabButton = ({ title, icon, isActive, onPress }) => (
   <TouchableOpacity
@@ -12,14 +13,11 @@ const BottomTabButton = ({ title, icon, isActive, onPress }) => (
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <Text
-      style={[
-        dashboardStyles.tabIcon,
-        isActive && dashboardStyles.activeTabIcon,
-      ]}
-    >
-      {icon}
-    </Text>
+    <Ionicons
+      name={icon}
+      size={20}
+      color={isActive ? COLORS.textPrimary : COLORS.textSecondary}
+    />
     <Text
       style={[
         dashboardStyles.tabText,
@@ -31,14 +29,16 @@ const BottomTabButton = ({ title, icon, isActive, onPress }) => (
   </TouchableOpacity>
 );
 
-const BottomNavigation = ({ activeTab, onTabPress, tabs = [], navigation }) => {
+const BottomNavigation = ({ activeTab, onTabPress, tabs = [], onMapPress, navigation }) => {
   const handleTabPress = (tabName) => {
     if (tabName === 'Capture') {
-      // Navigate to Capture screen
-      navigation?.navigate('Capture');
-    } else if (tabName === 'Map') {
-      // Navigate to Map screen
-      navigation?.navigate(SCREENS.MAP);
+      // Handle Capture tab press
+      console.log('Capture tab pressed');
+      navigation.navigate('MeterCapture');
+    } else if (tabName === 'Masterdata') {
+      // Handle Masterdata tab press
+      console.log('Masterdata tab pressed');
+      navigation.navigate('MasterData');
     } else {
       // Handle other tabs
       onTabPress(tabName);

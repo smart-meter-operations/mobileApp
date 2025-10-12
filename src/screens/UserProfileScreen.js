@@ -281,24 +281,7 @@ const UserProfileScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Actions Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ Actions</Text>
-
-          <Button
-            title="Sync Data"
-            onPress={handleSyncData}
-            style={styles.actionButton}
-            disabled={!syncStats?.pendingSync}
-          />
-
-          <Button
-            title="Clear Local Data"
-            onPress={handleClearLocalData}
-            style={[styles.actionButton, styles.dangerButton]}
-          />
-        </View>
-
+       
         {/* Sign Out */}
         <View style={styles.section}>
           <Button

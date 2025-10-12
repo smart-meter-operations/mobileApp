@@ -6,7 +6,7 @@ export const validatePhone = (phoneNumber) => {
 };
 
 export const validateOTP = (otp) => {
-  return otp && otp.length === 4 && /^\d{4}$/.test(otp);
+  return otp && otp.length === 6 && /^\d{6}$/.test(otp);
 };
 
 export const validateEmail = (email) => {
@@ -134,6 +134,9 @@ export const handleApiError = (error) => {
   return 'An unexpected error occurred';
 };
 
+// Database utilities
+export { default as databaseUtils } from './databaseUtils';
+
 // Storage utilities (for future use with AsyncStorage)
 export const storage = {
   async get(key) {
@@ -178,3 +181,6 @@ export const storage = {
     }
   },
 };
+
+// Map fallback for web platform
+export { default as mapFallback } from './mapFallback';

@@ -1,5 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 class PhoneUnlockService {
   constructor() {
@@ -20,6 +21,15 @@ class PhoneUnlockService {
 
   // Check if device supports biometric authentication
   async isBiometricSupported() {
+    // For web platform, biometric authentication is not available
+    if (Platform.OS === 'web') {
+      return {
+        hasHardware: false,
+        isEnrolled: false,
+        isSupported: false,
+      };
+    }
+
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
@@ -41,6 +51,11 @@ class PhoneUnlockService {
 
   // Get available authentication types
   async getAvailableAuthenticationTypes() {
+    // For web platform, no authentication types are available
+    if (Platform.OS === 'web') {
+      return [];
+    }
+
     try {
       const types =
         await LocalAuthentication.supportedAuthenticationTypesAsync();
@@ -69,6 +84,15 @@ class PhoneUnlockService {
 
   // Authenticate using biometrics
   async authenticateWithBiometrics() {
+    // For web platform, biometric authentication is not available
+    if (Platform.OS === 'web') {
+      return {
+        success: false,
+        error: 'Biometric authentication not available on web',
+        fallbackRequired: true,
+      };
+    }
+
     try {
       const biometricSupport = await this.isBiometricSupported();
 
@@ -114,6 +138,17 @@ class PhoneUnlockService {
 
   // Authenticate using device PIN/Pattern
   async authenticateWithDeviceCredentials() {
+    console.log('Authenticating with device credentials, Platform:', Platform.OS);
+    // For web platform, device credentials authentication is not available
+    if (Platform.OS === 'web') {
+      return {
+        success: true, // Changed to true for demo mode
+        method: 'demo',
+        message: 'Demo authentication successful',
+        error: 'Device credentials authentication not available on web',
+      };
+    }
+
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Unlock to continue',
@@ -148,6 +183,18 @@ class PhoneUnlockService {
 
   // Main authentication method
   async authenticate() {
+    console.log('Authenticating, Platform:', Platform.OS);
+    // For web platform, we'll use a demo mode that always succeeds
+    if (Platform.OS === 'web') {
+      console.log('Web platform detected - using demo authentication mode');
+      await this.saveAuthenticationSuccess('demo');
+      return {
+        success: true,
+        method: 'demo',
+        message: 'Demo authentication successful',
+      };
+    }
+
     try {
       const biometricSupport = await this.isBiometricSupported();
 

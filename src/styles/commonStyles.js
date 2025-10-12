@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../constants';
 
-// Common layout styles
+// Common layout styles (Material UI inspired - Light theme)
 export const layoutStyles = StyleSheet.create({
   centerContainer: {
     alignItems: 'center',
@@ -9,29 +9,29 @@ export const layoutStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   container: {
-    backgroundColor: COLORS.headerBackground,
+    backgroundColor: COLORS.background, // Light grey background
     flex: 1,
   },
   content: {
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
-    elevation: 25,
+    backgroundColor: COLORS.surface, // White surface
+    borderTopLeftRadius: BORDER_RADIUS.xl,
+    borderTopRightRadius: BORDER_RADIUS.xl,
+    elevation: 4, // Subtle elevation
     flex: 1,
     marginTop: -12,
-    paddingHorizontal: SPACING['2xl'],
-    paddingTop: SPACING['4xl'],
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING['3xl'],
     // Enhanced layered shadow effects
     shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
-      height: -12,
+      height: -4,
     },
     borderWidth: 0.5,
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    // Additional shadow layers for depth
-    borderColor: 'rgba(203, 213, 225, 0.3)',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    // Subtle border
+    borderColor: COLORS.borderLight,
     borderTopWidth: 0,
   },
   formContainer: {
@@ -52,149 +52,173 @@ export const layoutStyles = StyleSheet.create({
   },
 });
 
-// Header styles
+// Header styles (Material UI inspired - Light theme)
 export const headerStyles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    paddingBottom: SPACING['6xl'],
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING['6xl'],
+    justifyContent: 'center', // Center the content
+    paddingBottom: SPACING['2xl'],
+    paddingTop: SPACING['2xl'],
+    backgroundColor: COLORS.headerBackground, // White background
+    position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   logoContainer: {
     alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'center', // Center the logo
   },
   logoIcon: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    height: 24,
+    backgroundColor: COLORS.primary, // Dark grey for better visibility
+    borderRadius: BORDER_RADIUS.md,
+    height: 32,
     justifyContent: 'center',
-    marginRight: SPACING.sm,
-    width: 24,
+    marginRight: SPACING.md,
+    width: 32,
   },
   logoIconText: {
     color: COLORS.textWhite,
-    fontSize: TYPOGRAPHY.fontSizes.base,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
     fontWeight: TYPOGRAPHY.fontWeights.bold,
   },
   logoText: {
-    color: COLORS.textWhite,
-    fontSize: TYPOGRAPHY.fontSizes['3xl'],
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    color: COLORS.textPrimary, // Dark text for better contrast
+    fontSize: TYPOGRAPHY.fontSizes['4xl'],
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    letterSpacing: 1, // Add letter spacing for Material UI feel
   },
 });
 
-// Typography styles
+// Typography styles (Material UI inspired - Light theme)
 export const textStyles = StyleSheet.create({
   bodyText: {
-    color: COLORS.textPrimary,
+    color: COLORS.textPrimary, // Dark text
     fontSize: TYPOGRAPHY.fontSizes.base,
     lineHeight: TYPOGRAPHY.lineHeights.normal,
   },
   caption: {
-    color: COLORS.textMuted,
+    color: COLORS.textSecondary, // Medium grey text
     fontSize: TYPOGRAPHY.fontSizes.sm,
   },
   footerText: {
-    color: COLORS.textMuted,
+    color: COLORS.textMuted, // Light grey text
     fontSize: TYPOGRAPHY.fontSizes.xs,
   },
   subtitle: {
-    color: COLORS.textSecondary,
+    color: COLORS.textPrimary, // Darker for visibility
     fontSize: TYPOGRAPHY.fontSizes.lg,
-    lineHeight: TYPOGRAPHY.lineHeights.normal,
-    marginBottom: SPACING['3xl'] + SPACING.xs,
+    lineHeight: TYPOGRAPHY.lineHeights.relaxed,
+    marginBottom: SPACING.xl,
   },
   title: {
-    color: COLORS.textPrimary,
-    fontSize: TYPOGRAPHY.fontSizes['4xl'],
+    color: COLORS.textPrimary, // Dark text
+    fontSize: TYPOGRAPHY.fontSizes['3xl'],
     fontWeight: TYPOGRAPHY.fontWeights.bold,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
+    letterSpacing: 0.5, // Add letter spacing for Material UI feel
   },
 });
 
-// Button styles
+// Button styles (Material UI inspired - Light theme)
 export const buttonStyles = StyleSheet.create({
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.lg,
-    elevation: 8,
-    paddingVertical: SPACING.lg + 2,
-    shadowColor: COLORS.primary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: COLORS.textMuted,
-  },
-  primaryButtonText: {
-    color: COLORS.textWhite,
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    fontWeight: TYPOGRAPHY.fontWeights.bold,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    paddingVertical: SPACING.lg + 2,
-  },
-  secondaryButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
-  },
-});
-
-// Input styles
-export const inputStyles = StyleSheet.create({
-  textInput: {
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.border,
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1.5,
-    color: COLORS.textPrimary,
-    elevation: 2,
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    marginBottom: SPACING['2xl'] + SPACING.xs,
-    paddingHorizontal: SPACING.lg + 2,
-    paddingVertical: SPACING.lg + 2,
-    shadowColor: COLORS.shadowLight,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  textInputFocused: {
-    borderColor: COLORS.borderActive,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.2,
-  },
-});
-
-// Card styles
-export const cardStyles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: BORDER_RADIUS.xl,
-    elevation: 4,
-    padding: SPACING.lg,
+    backgroundColor: COLORS.primary, // Dark grey background
+    borderRadius: BORDER_RADIUS.md, // Material UI border radius
+    elevation: 3, // Subtle elevation
+    paddingVertical: SPACING.lg,
     shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.1, // Subtle shadow
+    shadowRadius: 4,
+    minWidth: 120, // Minimum width for better touch targets
+  },
+  primaryButtonDisabled: {
+    backgroundColor: COLORS.textMuted, // Grey when disabled
+    elevation: 1, // Reduced elevation when disabled
+  },
+  primaryButtonText: {
+    color: COLORS.textWhite, // White text for contrast
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.medium, // Medium weight for Material UI
+    letterSpacing: 0.5, // Add letter spacing
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.surface, // White background
+    borderColor: COLORS.border, // Light border
+    borderRadius: BORDER_RADIUS.md, // Material UI border radius
+    borderWidth: 1,
+    elevation: 2, // Subtle elevation
+    paddingVertical: SPACING.lg,
+    shadowColor: COLORS.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    minWidth: 120, // Minimum width for better touch targets
+  },
+  secondaryButtonText: {
+    color: COLORS.textPrimary, // Dark text
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.medium, // Medium weight for Material UI
+    letterSpacing: 0.5, // Add letter spacing
+  },
+});
+
+// Input styles (Material UI inspired - Light theme)
+export const inputStyles = StyleSheet.create({
+  textInput: {
+    backgroundColor: COLORS.card, // White background
+    borderColor: COLORS.border, // Light border
+    borderRadius: BORDER_RADIUS.sm, // Smaller border radius
+    borderWidth: 1,
+    color: COLORS.textPrimary, // Dark text
+    elevation: 1, // Minimal elevation
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    shadowColor: COLORS.shadowLight,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    minHeight: 44, // Minimum touch target size
+  },
+  textInputFocused: {
+    borderColor: COLORS.primary, // Dark grey border when focused
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.1, // Subtle shadow
+  },
+});
+
+// Card styles (Material UI inspired - Light theme)
+export const cardStyles = StyleSheet.create({
+  card: {
+    backgroundColor: COLORS.card, // White card background
+    borderRadius: BORDER_RADIUS.lg,
+    elevation: 2, // Subtle elevation
+    padding: SPACING.lg,
+    shadowColor: COLORS.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
   cardHeader: {
     alignItems: 'center',
@@ -206,16 +230,17 @@ export const cardStyles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSizes.xl,
   },
   cardPrimary: {
-    backgroundColor: COLORS.headerBackground,
+    backgroundColor: COLORS.card, // Consistent card background
   },
   cardTitle: {
-    color: COLORS.textSecondary,
+    color: COLORS.textSecondary, // Medium grey title
     fontSize: TYPOGRAPHY.fontSizes.sm,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
     letterSpacing: 0.5,
+    textTransform: 'uppercase', // Uppercase for Material UI feel
   },
   cardTitleWhite: {
-    color: COLORS.textWhite,
+    color: COLORS.textPrimary, // Dark text for better contrast
   },
 });
 
@@ -223,7 +248,7 @@ export const cardStyles = StyleSheet.create({
 export const footerStyles = StyleSheet.create({
   footer: {
     alignItems: 'center',
-    paddingBottom: SPACING['4xl'],
+    paddingBottom: SPACING['3xl'],
   },
   footerHidden: {
     display: 'none',
@@ -238,23 +263,31 @@ export const animationStyles = StyleSheet.create({
   scaleSmall: {
     transform: [{ scale: 0.95 }],
   },
-  slideUp: {
-    transform: [{ translateY: 50 }],
-  },
 });
 
-// List styles
+// List styles (Material UI inspired - Light theme)
 export const listStyles = StyleSheet.create({
   listContainer: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.card, // White background
     borderRadius: BORDER_RADIUS.lg,
-    marginHorizontal: SPACING.xl,
+    marginHorizontal: SPACING.md,
     overflow: 'hidden',
+    elevation: 2, // Subtle elevation
+    shadowColor: COLORS.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   listItem: {
     alignItems: 'center',
-    borderBottomColor: COLORS.borderLight,
-    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border, // Light border
+    borderBottomWidth: 0.5,
     flexDirection: 'row',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
@@ -264,7 +297,7 @@ export const listStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   listItemName: {
-    color: COLORS.textPrimary,
+    color: COLORS.textPrimary, // Dark text
     fontSize: TYPOGRAPHY.fontSizes.base,
     fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
@@ -281,52 +314,55 @@ export const listStyles = StyleSheet.create({
   },
 });
 
-// OTP specific styles
+// OTP specific styles (Material UI inspired - Light theme)
 export const otpStyles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING['2xl'] + SPACING.xs,
-    paddingHorizontal: SPACING.xl,
+    justifyContent: 'center', // Center the boxes
+    alignItems: 'center',
+    marginBottom: SPACING['2xl'],
+    paddingHorizontal: SPACING.sm, // Minimal padding
+    flexWrap: 'nowrap', // Prevent wrapping
   },
   otpInput: {
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.borderLight,
-    borderRadius: BORDER_RADIUS.lg - 3,
-    borderWidth: 2,
-    color: COLORS.textPrimary,
-    elevation: 3,
-    fontSize: TYPOGRAPHY.fontSizes['4xl'],
+    backgroundColor: COLORS.card, // White background
+    borderColor: COLORS.border, // Light border
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    color: COLORS.textPrimary, // Dark text
+    elevation: 2, // Subtle elevation
+    fontSize: TYPOGRAPHY.fontSizes['2xl'], // Reduced font size
     fontWeight: TYPOGRAPHY.fontWeights.bold,
-    height: 60,
+    height: 50, // Reduced height
     shadowColor: COLORS.shadowLight,
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 1,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
     textAlign: 'center',
-    width: 60,
+    width: 42, // Reduced width to fit 6 boxes comfortably
+    marginHorizontal: 3, // Small margin between boxes
   },
   otpInputFilled: {
-    borderColor: COLORS.primary,
-    borderWidth: 2.5,
+    borderColor: COLORS.primary, // Dark grey border when filled
+    borderWidth: 2,
     shadowColor: COLORS.primary,
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1, // Subtle shadow
   },
   resendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: SPACING['2xl'] + SPACING.xs,
+    marginBottom: SPACING['2xl'],
   },
   resendLink: {
-    color: COLORS.primary,
+    color: COLORS.primary, // Dark grey link
     fontSize: TYPOGRAPHY.fontSizes.base,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
   resendText: {
-    color: COLORS.textSecondary,
+    color: COLORS.textSecondary, // Medium grey text
     fontSize: TYPOGRAPHY.fontSizes.base,
   },
 });

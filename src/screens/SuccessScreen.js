@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, View, Text, Animated } from 'react-native';
+import { View, Text, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 // Import components and hooks
@@ -48,14 +49,14 @@ export default function SuccessScreen({ navigation }) {
                 elevation: 12,
               }}
             >
-              <Text style={{ fontSize: 48, color: 'white' }}>✓</Text>
+              <Text style={{ fontSize: 48, color: 'white', fontWeight: 'bold' }}>✓</Text>
             </View>
           </Animated.View>
 
           <Text
             style={[
               textStyles.title,
-              { textAlign: 'center', marginBottom: 16 },
+              { textAlign: 'center', marginBottom: 16, color: '#212121' },
             ]}
           >
             Success!
@@ -64,7 +65,7 @@ export default function SuccessScreen({ navigation }) {
           <Text
             style={[
               textStyles.subtitle,
-              { textAlign: 'center', marginBottom: 0 },
+              { textAlign: 'center', marginBottom: 0, color: '#424242', fontSize: 16, lineHeight: 24 },
             ]}
           >
             Your account has been verified successfully.{'\n'}

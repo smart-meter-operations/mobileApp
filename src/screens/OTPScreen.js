@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  SafeAreaView,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 // Import components and services
@@ -25,14 +25,14 @@ import { ANIMATION, SCREENS } from '../constants';
 
 export default function OTPScreen({ route, navigation }) {
   const { phoneNumber, generatedOTP } = route.params;
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
 
   // Custom hooks
   const isKeyboardVisible = useKeyboard();
   const { animatedStyle } = useEntranceAnimation();
-  const otpBoxAnims = useStaggeredAnimation(4, ANIMATION.stagger.otpBox);
+  const otpBoxAnims = useStaggeredAnimation(6, ANIMATION.stagger.otpBox);
 
   const handleOtpChange = (text, index) => {
     const newOtp = [...otp];
@@ -54,7 +54,7 @@ export default function OTPScreen({ route, navigation }) {
     ]).start();
 
     // Auto-focus next input
-    if (text && index < 3) {
+    if (text && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -74,11 +74,11 @@ export default function OTPScreen({ route, navigation }) {
     }
 
     try {
-      // For demo purposes, accept the generated OTP or 1234
-      if (otpCode === generatedOTP || otpCode === '1234') {
+      // Accept only the hardcoded OTP 123456
+      if (otpCode === '123456') {
         navigation.navigate('PhoneUnlock');
       } else {
-        Alert.alert('Error', 'Invalid OTP. Please try again.');
+        Alert.alert('Error', 'Invalid OTP. Please use 123456 for demo purposes.');
       }
     } catch (error) {
       Alert.alert('Error', 'Invalid OTP. Please try again.');
@@ -88,8 +88,9 @@ export default function OTPScreen({ route, navigation }) {
   const handleResend = async () => {
     setIsResending(true);
     try {
+      // Always use hardcoded OTP 123456
       await SmsService.resendOTP(phoneNumber);
-      Alert.alert('Success', 'OTP sent successfully!');
+      Alert.alert('Success', 'OTP has been resent! Use 123456 to proceed.');
     } catch (error) {
       Alert.alert('Error', 'Failed to resend OTP');
     } finally {
@@ -109,11 +110,36 @@ export default function OTPScreen({ route, navigation }) {
       >
         <Animated.View style={[layoutStyles.content, animatedStyle]}>
           <View style={layoutStyles.formContainer}>
-            <Text style={textStyles.title}>Enter OTP verification code</Text>
-            <Text style={textStyles.subtitle}>
+            <Text style={[textStyles.title, { color: '#212121' }]}>Enter OTP verification code</Text>
+            <Text style={[textStyles.subtitle, { color: '#424242', fontSize: 16, lineHeight: 24, textAlign: 'center' }]}>
               Verification number has been sent to{'\n'}
               {phoneNumber}
             </Text>
+            
+            {/* Demo Notice */}
+            <View style={{ 
+              backgroundColor: '#FFF3CD', 
+              padding: 12, 
+              borderRadius: 8, 
+              marginBottom: 20,
+              borderLeftWidth: 4,
+              borderLeftColor: '#FFECB3',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+              <Text style={{ 
+                color: '#856404', 
+                fontSize: 15, 
+                fontWeight: '600',
+                textAlign: 'center',
+                lineHeight: 22,
+              }}>
+                Demo Mode: Use OTP 123456 to proceed
+              </Text>
+            </View>
 
             {/* OTP Input Boxes */}
             <View style={otpStyles.otpContainer}>
@@ -135,11 +161,11 @@ export default function OTPScreen({ route, navigation }) {
 
             {/* Resend Link */}
             <View style={otpStyles.resendContainer}>
-              <Text style={otpStyles.resendText}>
-                Don&apos;t receive the code ?{' '}
+              <Text style={[otpStyles.resendText, { color: '#616161' }]}>
+                Didn't receive the code?{' '}
               </Text>
               <TouchableOpacity onPress={handleResend} disabled={isResending}>
-                <Text style={otpStyles.resendLink}>
+                <Text style={[otpStyles.resendLink, { color: '#1976D2', fontWeight: '600' }]}>
                   {isResending ? 'Sending...' : 'Resend'}
                 </Text>
               </TouchableOpacity>

@@ -8,8 +8,36 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
+
+// Conditional import - only import react-native-maps on native platforms
+let MapView, Marker, PROVIDER_DEFAULT;
+if (Platform.OS !== 'web') {
+  try {
+    const maps = require('react-native-maps');
+    MapView = maps.default ? maps.default : null;
+    Marker = maps.Marker ? maps.Marker : null;
+    PROVIDER_DEFAULT = maps.PROVIDER_DEFAULT ? maps.PROVIDER_DEFAULT : null;
+    
+    // Additional check to ensure MapView is a valid component
+    if (typeof MapView !== 'function') {
+      MapView = null;
+    }
+    if (typeof Marker !== 'function') {
+      Marker = null;
+    }
+  } catch (error) {
+    console.warn('react-native-maps import failed:', error);
+    MapView = null;
+    Marker = null;
+    PROVIDER_DEFAULT = null;
+  }
+} else {
+  MapView = null;
+  Marker = null;
+  PROVIDER_DEFAULT = null;
+}
 
 // Mock data for transformers, poles, and feeders
 const mockTransformers = [
@@ -30,25 +58,75 @@ const mockFeeders = [
   { id: 2, latitude: 18.5212, longitude: 73.8573, name: 'Feeder 2' },
 ];
 
-export default function MapScreen() {
+export default function MapScreen({ route }) {
   const [userLocation, setUserLocation] = useState({
     latitude: 18.5204,
     longitude: 73.8567,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-
+  
+  const [consumerLocation, setConsumerLocation] = useState(null);
   const [showTransformers, setShowTransformers] = useState(true);
   const [showPoles, setShowPoles] = useState(true);
   const [showFeeders, setShowFeeders] = useState(true);
   const [mapError, setMapError] = useState(null);
-  const [mapType, setMapType] = useState('openstreetmap');
+  const [mapType, setMapType] = useState('standard');
+  const [locationPermission, setLocationPermission] = useState(false);
 
-  // In a real app, you would get the user's actual location using expo-location
+  // Check if consumer location data is passed from route
   useEffect(() => {
-    // Mock getting user location
-    console.log('Getting user location...');
+    if (route?.params?.consumerLocation) {
+      const { latitude, longitude, name, address } = route.params.consumerLocation;
+      setConsumerLocation({
+        latitude,
+        longitude,
+        name,
+        address
+      });
+      
+      // Center map on consumer location
+      setUserLocation({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+  }, [route?.params?.consumerLocation]);
+
+  // Get user's current location
+  useEffect(() => {
+    getUserLocation();
   }, []);
+
+  const getUserLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationPermission(false);
+        Alert.alert('Permission denied', 'Location permission is required to show your current location on the map.');
+        return;
+      }
+
+      setLocationPermission(true);
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      
+      // Update user location only if we're not focusing on a consumer
+      if (!consumerLocation) {
+        setUserLocation({
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+      }
+    } catch (error) {
+      console.error('Error getting user location:', error);
+      Alert.alert('Location Error', 'Unable to get your current location.');
+    }
+  };
 
   const toggleTransformers = () => {
     setShowTransformers(!showTransformers);
@@ -67,12 +145,142 @@ export default function MapScreen() {
     setMapError(error.message || 'Failed to load map');
   };
 
+  const openNavigation = () => {
+    if (!consumerLocation) {
+      Alert.alert('No Destination', 'Please select a consumer location first.');
+      return;
+    }
+
+    // For in-app navigation, we'll just focus the map on the consumer location
+    // and show a route visualization if possible
+    setUserLocation({
+      latitude: consumerLocation.latitude,
+      longitude: consumerLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    
+    Alert.alert(
+      'Navigation Started',
+      `Navigating to ${consumerLocation.name}. The map is now centered on this location.`
+    );
+  };
+
   const switchToGoogleMaps = () => {
     const url = `https://www.google.com/maps/search/?api=1&query=${userLocation.latitude},${userLocation.longitude}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'Unable to open Google Maps');
     });
   };
+
+  // Function to center map on user's current location
+  const centerOnUserLocation = async () => {
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      
+      setUserLocation({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+      
+      Alert.alert('Success', 'Map centered on your current location');
+    } catch (error) {
+      console.error('Error getting user location:', error);
+      Alert.alert('Error', 'Unable to get your current location');
+    }
+  };
+
+  // Function to center map on consumer location
+  const centerOnConsumerLocation = () => {
+    if (!consumerLocation) {
+      Alert.alert('Error', 'No consumer location selected');
+      return;
+    }
+    
+    setUserLocation({
+      latitude: consumerLocation.latitude,
+      longitude: consumerLocation.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    
+    Alert.alert('Success', `Map centered on ${consumerLocation.name}`);
+  };
+
+  // Function to get directions between two points
+  const getDirections = async (startLat, startLng, endLat, endLng) => {
+    // This would be implemented with a directions API if needed
+    // For now, we'll just center the map on the destination
+    console.log('Getting directions from', startLat, startLng, 'to', endLat, endLng);
+  };
+
+  // Function to show route on map
+  const showRouteOnMap = () => {
+    if (!consumerLocation || !userLocation) {
+      Alert.alert('Error', 'Both user and consumer locations are required to show route.');
+      return;
+    }
+    
+    // In a real implementation, this would draw a route between points
+    // For now, we'll just ensure both locations are visible
+    Alert.alert(
+      'Route Information',
+      `Route from your location to ${consumerLocation.name} would be displayed here.`
+    );
+  };
+
+  // Function to simulate turn-by-turn navigation
+  const startTurnByTurnNavigation = () => {
+    if (!consumerLocation) {
+      Alert.alert('Error', 'Consumer location is required for navigation.');
+      return;
+    }
+    
+    Alert.alert(
+      'Navigation Started',
+      `Turn-by-turn navigation to ${consumerLocation.name} would start here. In a full implementation, this would provide real-time directions.`
+    );
+  };
+
+  // Show fallback UI for web platform or when maps are not available
+  if (Platform.OS === 'web' || !MapView || MapView === null || typeof MapView !== 'function') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.webFallbackContainer}>
+          <Text style={styles.webFallbackTitle}>Map View Not Available</Text>
+          <Text style={styles.webFallbackText}>
+            {Platform.OS === 'web' 
+              ? 'Maps are not supported in the web version of this app.' 
+              : 'react-native-maps library is not available.'}
+          </Text>
+          
+          {consumerLocation && (
+            <View style={styles.consumerInfo}>
+              <Text style={styles.consumerName}>{consumerLocation.name}</Text>
+              <Text style={styles.consumerAddress}>{consumerLocation.address}</Text>
+              
+              <TouchableOpacity
+                style={styles.navigationButton}
+                onPress={openNavigation}
+              >
+                <Text style={styles.navigationButtonText}>Open in Maps</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={switchToGoogleMaps}
+          >
+            <Text style={styles.actionText}>Open Google Maps</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   // Fallback UI for when map fails to load
   if (mapError) {
@@ -101,29 +309,73 @@ export default function MapScreen() {
     );
   }
 
+  // Render map for native platforms
+  if (!MapView || MapView === null || typeof MapView !== 'function') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.webFallbackContainer}>
+          <Text style={styles.webFallbackTitle}>Map Component Not Available</Text>
+          <Text style={styles.webFallbackText}>
+            The map component failed to load. Please check your installation.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Additional safety check before rendering
+  if (!MapView || typeof MapView !== 'function' || !Marker || typeof Marker !== 'function') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.webFallbackContainer}>
+          <Text style={styles.webFallbackTitle}>Map Component Not Available</Text>
+          <Text style={styles.webFallbackText}>
+            The map component failed to load properly. Please check your installation.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_DEFAULT}
         style={styles.map}
         region={userLocation}
-        showsUserLocation={true}
+        showsUserLocation={locationPermission}
         showsMyLocationButton={true}
         onError={handleMapError}
         onMapReady={() => console.log('Map is ready')}
+        mapType={mapType}
       >
         {/* User Location Marker */}
-        <Marker
-          coordinate={{
-            latitude: userLocation.latitude,
-            longitude: userLocation.longitude,
-          }}
-          title="Your Location"
-          pinColor={COLORS.primary}
-        />
+        {locationPermission && Marker && typeof Marker === 'function' && (
+          <Marker
+            coordinate={{
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+            }}
+            title="Your Location"
+            pinColor={COLORS.primary}
+          />
+        )}
+
+        {/* Consumer Location Marker */}
+        {consumerLocation && Marker && typeof Marker === 'function' && (
+          <Marker
+            coordinate={{
+              latitude: consumerLocation.latitude,
+              longitude: consumerLocation.longitude,
+            }}
+            title={consumerLocation.name}
+            description={consumerLocation.address}
+            pinColor="#FF3B30"
+          />
+        )}
 
         {/* Transformers */}
-        {showTransformers &&
+        {showTransformers && Marker && typeof Marker === 'function' &&
           mockTransformers.map((transformer) => (
             <Marker
               key={transformer.id}
@@ -141,7 +393,7 @@ export default function MapScreen() {
           ))}
 
         {/* Poles */}
-        {showPoles &&
+        {showPoles && Marker && typeof Marker === 'function' &&
           mockPoles.map((pole) => (
             <Marker
               key={pole.id}
@@ -159,7 +411,7 @@ export default function MapScreen() {
           ))}
 
         {/* Feeders */}
-        {showFeeders &&
+        {showFeeders && Marker && typeof Marker === 'function' &&
           mockFeeders.map((feeder) => (
             <Marker
               key={feeder.id}
@@ -176,6 +428,40 @@ export default function MapScreen() {
             </Marker>
           ))}
       </MapView>
+
+      {/* Navigation Controls - only show when consumer location is selected */}
+      {consumerLocation && (
+        <View style={styles.navigationControls}>
+          <TouchableOpacity
+            style={[styles.navigationButton, { marginBottom: SPACING.sm }]}
+            onPress={openNavigation}
+          >
+            <Text style={styles.navigationButtonText}>Center on Location</Text>
+          </TouchableOpacity>
+                  
+          <TouchableOpacity
+            style={[styles.navigationButton, { backgroundColor: COLORS.secondary }]}
+            onPress={showRouteOnMap}
+          >
+            <Text style={styles.navigationButtonText}>Show Route</Text>
+          </TouchableOpacity>
+                  
+          <TouchableOpacity
+            style={[styles.navigationButton, { backgroundColor: COLORS.success }]}
+            onPress={startTurnByTurnNavigation}
+          >
+            <Text style={styles.navigationButtonText}>Start Navigation</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+              
+      {/* User Location Button */}
+      <TouchableOpacity
+        style={styles.userLocationButton}
+        onPress={centerOnUserLocation}
+      >
+        <Text style={styles.userLocationButtonText}>📍</Text>
+      </TouchableOpacity>
 
       {/* Toggle Controls */}
       <View style={styles.controlsContainer}>
@@ -244,22 +530,22 @@ export default function MapScreen() {
             styles.mapTypeButton,
             {
               backgroundColor:
-                mapType === 'openstreetmap'
+                mapType === 'standard'
                   ? COLORS.primary
                   : COLORS.background,
             },
           ]}
-          onPress={() => setMapType('openstreetmap')}
+          onPress={() => setMapType('standard')}
         >
           <Text
             style={[
               styles.mapTypeText,
               {
-                color: mapType === 'openstreetmap' ? COLORS.white : COLORS.text,
+                color: mapType === 'standard' ? COLORS.white : COLORS.text,
               },
             ]}
           >
-            OSM
+            Standard
           </Text>
         </TouchableOpacity>
 
@@ -268,18 +554,18 @@ export default function MapScreen() {
             styles.mapTypeButton,
             {
               backgroundColor:
-                mapType === 'none' ? COLORS.primary : COLORS.background,
+                mapType === 'satellite' ? COLORS.primary : COLORS.background,
             },
           ]}
-          onPress={() => setMapType('none')}
+          onPress={() => setMapType('satellite')}
         >
           <Text
             style={[
               styles.mapTypeText,
-              { color: mapType === 'none' ? COLORS.white : COLORS.text },
+              { color: mapType === 'satellite' ? COLORS.white : COLORS.text },
             ]}
           >
-            None
+            Satellite
           </Text>
         </TouchableOpacity>
       </View>
@@ -301,9 +587,58 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
   },
+  navigationControls: {
+    bottom: 120,
+    left: SPACING.xl,
+    position: 'absolute',
+    right: SPACING.xl,
+  },
+  userLocationButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.primary,
+    borderRadius: 20,
+    borderWidth: 1,
+    elevation: 5,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: SPACING.lg,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    top: SPACING.xl,
+    width: 40,
+  },
+  userLocationButtonText: {
+    color: COLORS.primary,
+    fontSize: 20,
+  },
   container: {
     backgroundColor: COLORS.background,
     flex: 1,
+  },
+  consumerAddress: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginBottom: SPACING.lg,
+    textAlign: 'center',
+  },
+  consumerInfo: {
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.xl,
+    padding: SPACING.lg,
+    width: '80%',
+  },
+  consumerName: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.xl,
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
   },
   controlsContainer: {
     bottom: SPACING.xl,
@@ -377,6 +712,26 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
   },
+  navigationButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.lg,
+    bottom: 90,
+    elevation: 5,
+    left: SPACING.xl,
+    padding: SPACING.md,
+    position: 'absolute',
+    right: SPACING.xl,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  navigationButtonText: {
+    color: COLORS.white,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+  },
   toggleButton: {
     backgroundColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.md,
@@ -392,5 +747,24 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: TYPOGRAPHY.fontSizes.sm,
     fontWeight: TYPOGRAPHY.fontWeights.semibold,
+  },
+  webFallbackContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  webFallbackText: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.base,
+    marginBottom: SPACING.xl,
+    textAlign: 'center',
+  },
+  webFallbackTitle: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes['2xl'],
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
   },
 });

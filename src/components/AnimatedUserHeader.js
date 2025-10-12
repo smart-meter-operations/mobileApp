@@ -16,11 +16,17 @@ const AnimatedUserHeader = ({
   user,
   onUserIconPress,
   syncStatus = 'online',
+  pendingItems = 0,
+  onSyncNow,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [animationValue] = useState(new Animated.Value(1));
   const [welcomeOpacity] = useState(new Animated.Value(1));
   const [userDetailsOpacity] = useState(new Animated.Value(1));
+  // Center title animation
+  const [centerIconOpacity] = useState(new Animated.Value(0));
+  const [centerTitleOpacity] = useState(new Animated.Value(0));
+  const [centerTranslateX] = useState(new Animated.Value(0));
 
   useEffect(() => {
     // Auto-collapse after 4 seconds to show welcome message longer
@@ -29,6 +35,45 @@ const AnimatedUserHeader = ({
     }, 4000);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Title intro sequence: "Welcome to" (center) -> icon -> slide -> WATTLY
+    // Reset states
+    welcomeOpacity.setValue(1);
+    centerIconOpacity.setValue(0);
+    centerTitleOpacity.setValue(0);
+    centerTranslateX.setValue(0);
+
+    Animated.sequence([
+      // Hold "Welcome to" briefly
+      Animated.delay(900),
+      // Fade out "Welcome to"
+      Animated.timing(welcomeOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      // Fade in icon alone
+      Animated.timing(centerIconOpacity, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.delay(250),
+      // Slide slightly to the right to make space for title
+      Animated.timing(centerTranslateX, {
+        toValue: 24,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+      // Fade in title next to icon
+      Animated.timing(centerTitleOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   const collapseHeader = () => {
@@ -99,6 +144,7 @@ const AnimatedUserHeader = ({
   };
 
   const getSyncStatusIcon = () => {
+    if (pendingItems > 0) return 'sync-outline';
     switch (syncStatus) {
       case 'online':
         return 'checkmark-circle';
@@ -112,6 +158,7 @@ const AnimatedUserHeader = ({
   };
 
   const getSyncStatusLabel = () => {
+    if (pendingItems > 0) return 'Sync Now';
     switch (syncStatus) {
       case 'online':
         return 'Synced';
@@ -125,6 +172,7 @@ const AnimatedUserHeader = ({
   };
 
   const getSyncColors = () => {
+    if (pendingItems > 0) return { bg: COLORS.infoLight, text: COLORS.info };
     switch (syncStatus) {
       case 'online':
         return { bg: COLORS.successLight, text: COLORS.success };
@@ -149,17 +197,21 @@ const AnimatedUserHeader = ({
 
   return (
     <View style={styles.container}>
+      {/* Center Title (animated) - Fixed positioning to be truly centered */}
+      <View style={styles.centerTitleContainer} pointerEvents="none">
+       
+        <View style={styles.iconTitleContainer}>
+          {/* Icon */}
+          <Animated.View style={{ opacity: centerIconOpacity }}>
+            <Ionicons name="flash-outline" size={18} color={COLORS.textPrimary} style={{ marginRight: 8 }} />
+          </Animated.View>
+          {/* Title (fades in) */}
+          <Animated.Text style={[styles.titleText, { opacity: centerTitleOpacity }]}>WATTLY</Animated.Text>
+        </View>
+      </View>
+      
       {/* Animated User Header - Left Side */}
-      <Animated.View
-        style={[
-          styles.headerContainer,
-          {
-            width: animatedWidth,
-            paddingHorizontal: animatedPadding,
-            paddingVertical: animatedPadding,
-          },
-        ]}
-      >
+      <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.headerContent}
           onPress={handleUserIconPress}
@@ -171,7 +223,7 @@ const AnimatedUserHeader = ({
           </View>
 
           {/* User Details - Only visible when expanded */}
-          {isExpanded && (
+          {false && (
             <Animated.View
               style={[styles.userDetails, { opacity: userDetailsOpacity }]}
             >
@@ -199,22 +251,27 @@ const AnimatedUserHeader = ({
             </View>
           )}
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
-      {/* Sync Status Pill - Right Side */}
-      <TouchableOpacity
-        style={[styles.syncContainer, { backgroundColor: getSyncColors().bg }]}
-        activeOpacity={0.8}
-      >
-        <Ionicons
-          name={getSyncStatusIcon()}
-          size={16}
-          color={getSyncColors().text}
-        />
-        <Text style={[styles.syncText, { color: getSyncColors().text }]}>
-          {getSyncStatusLabel()}
-        </Text>
-      </TouchableOpacity>
+      {/* Sync Now pill should appear ONLY when there are ToSync records */}
+      {pendingItems > 0 && (
+        <TouchableOpacity
+          style={[styles.syncContainer, { backgroundColor: getSyncColors().bg }]}
+          activeOpacity={0.8}
+          onPress={() => {
+            onSyncNow?.();
+          }}
+        >
+          <Ionicons
+            name={getSyncStatusIcon()}
+            size={16}
+            color={getSyncColors().text}
+          />
+          <Text style={[styles.syncText, { color: getSyncColors().text }]}>
+            {getSyncStatusLabel()}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -225,22 +282,26 @@ const styles = StyleSheet.create({
   },
   circularAvatar: {
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.primary, // Dark grey for better visibility
     borderColor: COLORS.white,
-    borderRadius: 22,
+    borderRadius: 20,
     borderWidth: 2,
-    height: 44,
+    height: 40,
     justifyContent: 'center',
-    width: 44,
+    width: 40,
   },
   container: {
     alignItems: 'center',
     backgroundColor: COLORS.headerBackground,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    minHeight: 52,
+    position: 'relative', // Needed for absolute positioning of center title
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   expandIndicator: {
     marginLeft: SPACING.xs,
@@ -255,30 +316,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   roleText: {
-    color: COLORS.textLight,
-    fontSize: TYPOGRAPHY.fontSizes.sm,
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSizes.xs,
     marginTop: 2,
   },
   syncContainer: {
     alignItems: 'center',
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.md,
     flexDirection: 'row',
-    height: 32,
-    paddingHorizontal: SPACING.md,
+    height: 30,
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.card, // White background
+    elevation: 2, // Subtle elevation
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   syncText: {
-    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontSize: TYPOGRAPHY.fontSizes.xs,
     fontWeight: TYPOGRAPHY.fontWeights.medium,
     marginLeft: 6,
   },
+  // Fixed center title container
+  centerTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    zIndex: 10,
+  },
+  iconTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 0,
+  },
+  welcomeCenterText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
+    marginRight: 8,
+  },
+  titleText: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.lg,
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
+    letterSpacing: 1,
+  },
   userDetails: {
     flex: 1,
-    marginLeft: SPACING.md,
+    marginLeft: SPACING.sm,
   },
   welcomeText: {
-    color: COLORS.textWhite,
-    fontSize: TYPOGRAPHY.fontSizes.lg,
-    fontWeight: TYPOGRAPHY.fontWeights.semibold,
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSizes.sm,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
 });
 

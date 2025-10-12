@@ -1,229 +1,84 @@
-# How to Run the Smart Meter Operations (SMOV) Mobile App
-
-This guide provides step-by-step instructions for setting up and running the Smart Meter Operations mobile application locally for testing with Expo Go.
+# How to Run the Smart Meter Operations App
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
+- Node.js (version 18 or higher)
+- npm or yarn
+- Expo CLI
+- Android Studio or Xcode for mobile development
 
-1. **Node.js** (version 16 or higher)
-2. **npm** (comes with Node.js) or **yarn**
-3. **Git**
-4. **Expo Go app** installed on your mobile device (available on iOS App Store and Google Play Store)
+## Installation
 
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/smart-meter-operations/mobileApp.git
-cd mobileApp
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-Or if you're using yarn:
-
-```bash
-yarn install
-```
-
-### 3. Verify Installation
-
-Check that all dependencies have been installed correctly:
-
-```bash
-npm list
-```
+1. Clone the repository
+2. Navigate to the project directory
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
 
 ## Running the Application
 
-### Option 1: Using Expo CLI (Recommended)
+### Development Mode
 
-1. Install Expo CLI globally (if not already installed):
-
-```bash
-npm install -g @expo/cli
-```
-
-2. Start the development server:
-
+To start the development server:
 ```bash
 npm start
 ```
 
-Or:
+This will start the Expo development server. You can then:
+- Scan the QR code with the Expo Go app on your mobile device
+- Press 'a' to run on Android emulator
+- Press 'i' to run on iOS simulator
 
-```bash
-npx expo start
-```
+### Running on Specific Platforms
 
-3. Scan the QR code with your Expo Go app
+- Android: `npm run android`
+- iOS: `npm run ios`
+- Web: `npm run web`
 
-### Option 2: Platform-Specific Commands
+## Database and Synchronization
 
-#### For iOS:
-```bash
-npm run ios
-```
+The application uses a local SQLite database for offline functionality with automatic synchronization capabilities.
 
-#### For Android:
-```bash
-npm run android
-```
+### Database Features
 
-#### For Web (if supported):
-```bash
-npm run web
-```
+- Local SQLite database for offline data storage
+- Automatic synchronization with remote server
+- Data persistence across app sessions
+- Conflict resolution mechanisms
 
-## Building the Application
+### Synchronization
 
-### Setting up EAS CLI for Building APK
+The app supports both on-demand and scheduled synchronization:
 
-1. Install EAS CLI globally:
+1. **On-demand sync**: Manually trigger synchronization through the app interface
+2. **Scheduled sync**: Automatic synchronization every 15 minutes when online
+3. **Background sync**: Continues to sync data even when the app is in the background
 
-```bash
-npm install -g eas-cli
-```
+### Configuration
 
-2. Log in to your Expo account:
+Sync settings can be configured in the app:
+- Sync interval: 15 minutes (default)
+- Batch size: 50 records per sync
+- Max retries: 3 attempts per record
 
-```bash
-eas login
-```
+## Testing
 
-3. Initialize EAS for your project:
-
-```bash
-eas init
-```
-
-4. Configure build settings in `eas.json`:
-
-```json
-{
-  "cli": {
-    "version": ">= 12.0.0",
-    "appVersionSource": "remote"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
-    }
-  }
-}
-```
-
-5. Update `app.json` with Android package information:
-
-```json
-{
-  "expo": {
-    // ... other settings
-    "android": {
-      "package": "com.yourcompany.smartmeteroperations",
-      "versionCode": 1
-    }
-    // ... other settings
-  }
-}
-```
-
-### Building Android APK
-
-#### For Development:
-```bash
-eas build --platform android --profile development
-```
-
-#### For Preview:
-```bash
-eas build --platform android --profile preview
-```
-
-#### For Production:
-```bash
-eas build --platform android --profile production
-```
-
-You can also use npx if you haven't installed EAS CLI globally:
-
-```bash
-npx eas-cli build --platform android --profile preview
-```
-
-The build will be queued and you'll receive a link to download the APK once it's complete.
-
-## Testing the Application
-
-### Running Unit Tests
-
-The project includes Jest for unit testing:
-
+To run tests:
 ```bash
 npm test
 ```
 
-To run tests in watch mode:
+## Code Quality
 
-```bash
-npm test -- --watch
-```
-
-### Running Code Quality Checks
-
-ESLint is configured for static code analysis:
-
-```bash
-npm run lint
-```
-
-To automatically fix issues:
-
-```bash
-npm run lint -- --fix
-```
-
-Prettier is configured for code formatting:
-
-```bash
-npm run format
-```
-
-Run all code quality checks:
-
+To run linting and formatting:
 ```bash
 npm run code-quality
 ```
 
-## Firebase Configuration
+## Troubleshooting
 
-To use the Firebase authentication features:
-
-1. Create a Firebase project at https://console.firebase.google.com
-2. Enable Authentication > Sign-in method > Phone
-3. Update the `firebaseConfig` in `src/services/firebaseService.js` with your project credentials
-4. Add your app's bundle ID to the Firebase project
+Refer to the [TROUBLESHOOTING.md](TROUBLESHOOTING.md) file for common issues and solutions.
 
 ## Project Structure Overview
 
@@ -262,43 +117,6 @@ src/
 5. **Offline Support**
    - SQLite database
    - Data synchronization
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Metro Bundler Issues**
-   - Clear cache: `npx expo start -c`
-   - Reset Metro: `npm start -- --reset-cache`
-
-2. **Dependency Issues**
-   - Delete `node_modules` and `package-lock.json`
-   - Run `npm install` again
-
-3. **iOS Simulator Issues**
-   - Ensure Xcode is installed (macOS only)
-   - Run `npx expo run:ios`
-
-4. **Android Emulator Issues**
-   - Ensure Android Studio and emulator are installed
-   - Run `npx expo run:android`
-
-### Development Tips
-
-1. **Hot Reload**: Changes to the code will automatically reload in the Expo Go app
-2. **Debugging**: Shake your device to open developer menu in Expo Go
-3. **Logs**: View console logs in the terminal where you ran `npm start`
-
-## Code Review Tools
-
-This project includes several code review tools:
-
-1. **ESLint**: Static code analysis
-2. **Prettier**: Code formatting
-3. **Jest**: Unit testing
-4. **SonarQube Scanner**: Comprehensive static analysis
-
-For more details, see [CODE_REVIEW_TOOLS.md](CODE_REVIEW_TOOLS.md)
 
 ## Contributing
 
