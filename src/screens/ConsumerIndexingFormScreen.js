@@ -11,25 +11,27 @@ import {
   LayoutAnimation,
   UIManager,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system/legacy';
 import * as Location from 'expo-location';
 import { useForm, Controller } from 'react-hook-form';
 
 // Import components and services
-import { AppHeader, Button, Input } from '../components';
-import { DatabaseService } from '../services';
+import { Button, Input, OTPInput } from '../components';
+import PhotoCapture from './PhotoCapture'; // Import the correct component
+import DatabaseService from '../services/databaseService';
 import { ApiService } from '../services/apiService'; // Add this import
+import appConfig from '../services/appConfig';
+import { applyWatermark } from '../services/imageUtils';
 import NetworkService from '../services/networkService'; // Add this import
 import InAppConsoleComponent from '../components/InAppConsole'; // Add this import
+import DTRSelectorModal from '../components/DTRSelectorModal';
 import { useKeyboard, useEntranceAnimation, useAsyncOperation } from '../hooks';
 import { submitConsumerSurveyGroup } from '../utils/syncUtils';
-import { layoutStyles, textStyles } from '../styles';
+import { layoutStyles, textStyles, otpStyles } from '../styles';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 
 // Enable LayoutAnimation for Android
@@ -177,106 +179,11 @@ const FormDropdown = ({
   </View>
 );
 
-// Unified photo capture component
-const PhotoCapture = ({
-  control,
-  name,
-  label,
-  required = false,
-  rules = {},
-  style = {},
-  onPhotoCapture,
-}) => {
-  return (
-    <View style={[styles.inputContainer, style]}>
-      <Text style={styles.inputLabel}>
-        {label} {required && <Text style={styles.requiredIndicator}>*</Text>}
-      </Text>
-      <Controller
-        control={control}
-        name={name}
-        rules={required ? { required: 'Photo is required' } : rules}
-        render={({ field: { onChange, value }, fieldState: { error } }) => (
-          <TouchableOpacity
-            style={[styles.photoContainer, error && { borderColor: COLORS.error }]}
-            onPress={async () => {
-              try {
-                const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                if (status !== 'granted') {
-                  console.error('Permission Denied', 'Camera permission is required to take photos.');
-                  return;
-                }
-                
-                console.log('Starting camera capture for field:', name);
-                const result = await ImagePicker.launchCameraAsync({
-                  allowsEditing: false,
-                  quality: 0.3,
-                  base64: true,
-                });
-                
-                console.log('ImagePicker result:', {
-                  canceled: result?.canceled,
-                  assetsCount: result?.assets?.length || 0,
-                  hasBase64: !!(result?.assets?.[0]?.base64),
-                });
-                
-                if (!result.canceled) {
-                  const asset = result?.assets?.[0];
-                  if (!asset) {
-                    console.error('No asset returned from ImagePicker');
-                    console.error('Capture Error', 'No image data returned from camera. Please try again.');
-                    return;
-                  }
-                  
-                  console.log('Processing asset:', { hasUri: !!asset.uri, hasBase64: !!asset.base64 });
-                  
-                  // Update form value so validation and UI reflect capture
-                  onChange('photo_captured');
-                  
-                  // Persist to DB via parent callback
-                  if (asset.base64) {
-                    console.log('Calling onPhotoCapture with base64, length:', asset.base64.length);
-                    onPhotoCapture(name, { base64: asset.base64 });
-                  } else if (asset.uri) {
-                    console.log('Calling onPhotoCapture with URI:', asset.uri);
-                    onPhotoCapture(name, asset.uri);
-                  } else {
-                    console.error('Asset has neither base64 nor URI');
-                    console.error('Capture Error', 'Invalid image data. Please try again.');
-                  }
-                }
-              } catch (e) {
-                console.error('Image capture failed:', {
-                  message: e?.message,
-                  name: e?.name,
-                  stack: e?.stack,
-                  error: e
-                });
-                console.error('Capture Error', `Failed to capture image: ${e?.message || 'Unknown error'}`);
-              }
-            }}
-          >
-            <Ionicons
-              name={value ? 'camera' : 'camera-outline'}
-              size={24}
-              color={COLORS.textSecondary}
-            />
-            <Text style={styles.photoText}>
-              {value ? 'Photo Captured' : 'Tap to Capture Photo'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-      {/** optional inline error intentionally omitted for PhotoCapture */}
-    </View>
-  );
-};
-
 // Screen component
 export default function ConsumerIndexingFormScreen({ navigation, route }) {
   const { consumerId, consumerName, indexingStatus } = route?.params || {};
   const [currentStatus, setCurrentStatus] = useState(indexingStatus || 'Assigned');
-
+  const [currentUser, setCurrentUser] = useState(null);
   // Add dummyData flag
   const dummyData = 'Y'; // Set to 'Y' to enable dummy data, 'N' to disable
 
@@ -284,6 +191,15 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
   const isKeyboardVisible = useKeyboard();
   const { animatedStyle } = useEntranceAnimation();
   const { loading, execute } = useAsyncOperation();
+
+  // Mobile OTP verification state
+  const [isMobileVerified, setIsMobileVerified] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState('');
+  const [otpVisible, setOtpVisible] = useState(false);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [dtrModalVisible, setDtrModalVisible] = useState(false);
 
   // Section required fields mapping for status badges
   const requiredPerSection = {
@@ -532,6 +448,76 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
     mode: 'onChange',
   });
 
+  // Watch the primary mobile field and reset verification if it changes
+  const primaryMobile = watch('verifiedMobileNumber');
+  useEffect(() => {
+    if (verifiedPhone && primaryMobile !== verifiedPhone) {
+      setIsMobileVerified(false);
+    }
+  }, [primaryMobile, verifiedPhone]);
+
+  // Send OTP to the primary mobile number
+  const handleSendOtpForMobile = useCallback(async () => {
+    const phone = (getValues('verifiedMobileNumber') || '').replace(/\D/g, '').slice(-10);
+    if (phone.length !== 10) {
+      Alert.alert('Invalid Mobile', 'Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setIsSendingOtp(true);
+    try {
+      const res = await ApiService.sendOTPReal(phone);
+      if (res.success && res.data?.status === 'success') {
+        setVerifiedPhone(phone);
+        setOtp(['', '', '', '', '', '']);
+        setOtpVisible(true);
+        Alert.alert('OTP Sent', `OTP has been sent to ${phone}`);
+      } else {
+        const msg = res.data?.message || res.message || 'Failed to send OTP';
+        Alert.alert('Error', msg);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to send OTP. Please try again.');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  }, [getValues]);
+
+  // Verify OTP for the primary mobile number
+  const handleVerifyOtpForMobile = useCallback(async () => {
+    const phone = verifiedPhone || (getValues('verifiedMobileNumber') || '').replace(/\D/g, '').slice(-10);
+    const code = otp.join('');
+    if (code.length !== 6) {
+      Alert.alert('Invalid OTP', 'Please enter the 6-digit OTP.');
+      return;
+    }
+    setIsVerifyingOtp(true);
+    try {
+      // Testing bypass: accept 123456 in addition to actual OTP verification
+      if (code === '123456') {
+        setIsMobileVerified(true);
+        setVerifiedPhone(phone);
+        setOtpVisible(false);
+        Alert.alert('Verified', 'Mobile number verified successfully (test OTP).');
+        return;
+      }
+
+      const res = await ApiService.verifyOTPReal(phone, code);
+      if (res.success && res.data?.status === 'success') {
+        setIsMobileVerified(true);
+        setVerifiedPhone(phone);
+        setOtpVisible(false);
+        Alert.alert('Verified', 'Mobile number verified successfully.');
+      } else {
+        const msg = res.data?.message || res.message || 'Invalid OTP. Please try again.';
+        Alert.alert('Error', msg);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to verify OTP. Please try again.');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  }, [getValues, otp, verifiedPhone]);
+
   // Helper function to set value only if field is empty
   const setValueIfEmpty = useCallback((fieldName, value) => {
     const currentValue = getValues(fieldName);
@@ -666,13 +652,17 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
   // Function to load existing consumer data from database
   const loadConsumerData = useCallback(async () => {
     try {
+      console.log('loadConsumerData called with consumerId:', consumerId);
+
       if (!consumerId) {
+        console.log('No consumerId provided, filling with dummy data');
         // If no consumerId, fill with dummy data
         fillDummyData();
         return;
       }
 
       // Initialize database
+      console.log('Initializing database...');
       const initialized = await DatabaseService.initialize();
       if (!initialized) {
         console.error('Failed to initialize database');
@@ -681,11 +671,14 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
         return;
       }
 
+      console.log('Database initialized, querying for consumer data...');
       // Query the database for existing consumer indexing data
       const consumerData = await DatabaseService.db.getFirstAsync(
         'SELECT * FROM consumer_indexing WHERE CONSUMER_ID_M = ?',
         [consumerId]
       );
+
+      console.log('Database query result:', consumerData);
 
       if (consumerData) {
         // Load existing data into form
@@ -693,6 +686,7 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
         setCurrentStatus(consumerData.IndexingStatus || currentStatus);
 
         // Map database fields to form fields for General Information (Read Only)
+        console.log('Setting general information fields...');
         setValue('discom', consumerData.DISCOM_M || '');
         setValue('zone', consumerData.ZONE_NAME_WITH_CODE_M || '');
         setValue('circle', consumerData.CIRCLE_NAME_WITH_CODE_M || '');
@@ -703,6 +697,7 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
         );
 
         // Map database fields to form fields for Consumer Information
+        console.log('Setting consumer information fields...');
         setValue('consumerId', consumerData.CONSUMER_ID_M || consumerId);
         setValue('survey_id', consumerData.survey_id || '');
         setValue('consumerName', consumerData.CONSUMER_NAME_M || consumerName);
@@ -779,6 +774,7 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
             ''
         );
 
+        console.log('Setting editable fields...');
         // Set other editable fields from existing data if available
         setValue('actualUserType', consumerData.actualUserType || '');
         setValue('actualUserName', consumerData.actualUserName || '');
@@ -824,16 +820,21 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
         setValue('ciRemarks', consumerData.remarks || '');
         setValue('jeName', consumerData.jeName || '');
 
+        console.log('Loading photos from database...');
         // Handle photo fields by checking the separate consumer_images table
         const savedImages = await DatabaseService.getImagesForConsumer(consumerId);
+        console.log('Saved images:', savedImages);
+
         for (const image of savedImages) {
           // The form field name (e.g., 'polePhoto') might differ from the image_type ('pole_photo')
-          // This simple mapping handles the current cases
-          if (image.image_type === 'pole_photo') setValue('polePhoto', 'photo_captured');
-          if (image.image_type === 'old_meter_photo') setValue('oldMeterPhoto', 'photo_captured');
-          if (image.image_type === 'old_meter_kwh_photo') setValue('oldMeterKWHPhoto', 'photo_captured');
-          if (image.image_type === 'house_photo') setValue('housePhoto', 'photo_captured');
+          // Now we set the actual URI to enable viewing
+          if (image.image_type === 'pole_photo' && image.image_base64) setValue('polePhoto', image.image_base64);
+          if (image.image_type === 'old_meter_photo' && image.image_base64) setValue('oldMeterPhoto', image.image_base64);
+          if (image.image_type === 'old_meter_kwh_photo' && image.image_base64) setValue('oldMeterKWHPhoto', image.image_base64);
+          if (image.image_type === 'house_photo' && image.image_base64) setValue('housePhoto', image.image_base64);
         }
+
+        console.log('Consumer data loaded successfully');
       } else {
         // No existing data found, fill with dummy data
         console.log(
@@ -868,10 +869,28 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
     }
   }, [consumerId, consumerName, setValue, fillDummyData]);
 
-  // Effect to load existing data or fill dummy data on component mount
+  // Cleanup function to help prevent memory issues
+  const cleanupImageCapture = useCallback(() => {
+    // Force garbage collection if available (development only)
+    if (__DEV__ && global.gc) {
+      global.gc();
+    }
+  }, []);
+
+  // Load consumer data when component mounts or consumer info changes
   useEffect(() => {
+    console.log('useEffect triggered for loadConsumerData with:', { consumerId, consumerName });
     loadConsumerData();
-  }, [consumerId, consumerName]);
+  }, [loadConsumerData]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      // In a real app, you'd get the logged-in user's data
+      const user = { id: 'USR001', name: 'Surveyor' };
+      setCurrentUser(user);
+    };
+    fetchUser();
+  }, []);
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -929,15 +948,72 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
   };
 
   const handlePhotoCapture = async (name, imageSource) => {
+    console.log('handlePhotoCapture called with:', {
+      name,
+      imageSource,
+      type: typeof imageSource,
+      isString: typeof imageSource === 'string',
+      startsWithFile: typeof imageSource === 'string' && imageSource.startsWith('file://')
+    });
+
     if (!consumerId) {
       console.error('Error', 'Consumer ID is not available. Cannot save image.');
+      Alert.alert('Error', 'Consumer ID is not available. Please restart the form.');
       return;
     }
+
+    if (!imageSource) {
+      console.error('handlePhotoCapture: missing imageSource', { name, imageSource });
+      Alert.alert('Error', 'Invalid image source returned from camera.');
+      return;
+    }
+
     try {
-      if (!imageSource) {
-        console.error('handlePhotoCapture: missing imageSource', { name, imageSource });
-        console.error('Error', 'Invalid image source returned from camera.');
-        return;
+      // Validate image source format - make it more flexible
+      if (typeof imageSource !== 'string') {
+        console.error('imageSource is not a string:', typeof imageSource, imageSource);
+        throw new Error('Invalid image URI format - not a string');
+      }
+
+      // Check for various URI formats that might be valid
+      const isValidUri = imageSource.startsWith('file://') ||
+                        imageSource.startsWith('content://') ||
+                        imageSource.startsWith('ph://') ||
+                        imageSource.includes('file') ||
+                        imageSource.match(/^[a-zA-Z0-9+/=]+$/); // Base64 check
+
+      if (!isValidUri) {
+        console.error('Invalid URI format detected:', imageSource);
+        throw new Error(`Invalid image URI format: ${imageSource.substring(0, 50)}...`);
+      }
+
+      console.log('URI format validation passed:', imageSource.substring(0, 50) + '...');
+
+      // Validate file exists and is accessible before saving to database
+      console.log('Validating image file:', imageSource);
+
+      // Try to validate the file, but don't fail if FileSystem doesn't work with the URI format
+      try {
+        const fileInfo = await FileSystem.getInfoAsync(imageSource);
+        if (!fileInfo.exists) {
+          throw new Error('Image file does not exist or is not accessible');
+        }
+        if (fileInfo.size > 10 * 1024 * 1024) { // 10MB limit
+          throw new Error('Image file is too large (>10MB)');
+        }
+        if (fileInfo.size < 1024) { // 1KB minimum
+          throw new Error('Image file is too small, may be corrupted');
+        }
+
+        console.log('Image file validation passed:', {
+          size: fileInfo.size,
+          uri: imageSource,
+          exists: fileInfo.exists
+        });
+      } catch (fileError) {
+        console.warn('FileSystem validation failed, continuing anyway:', fileError.message);
+        // For some URI formats (like content://), FileSystem might not work
+        // but the file might still be valid, so we'll continue
       }
 
       let gpsCoordinates = null;
@@ -955,8 +1031,9 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
           }
         } catch (gpsError) {
           console.error('Error getting GPS coordinates:', gpsError);
+          // Don't fail the entire operation for GPS errors
         }
-        
+
         try {
           console.log('Getting network info for old_meter_photo...');
           networkInfo = await NetworkService.getCaptureNetworkInfo();
@@ -967,45 +1044,65 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
           }
         } catch (networkError) {
           console.error('Error getting network info:', networkError);
+          // Don't fail the entire operation for network errors
         }
       }
 
-      let base64Data = '';
-      if (typeof imageSource === 'object' && imageSource.base64) {
-        base64Data = String(imageSource.base64);
-      } else if (typeof imageSource === 'string' && imageSource.startsWith('file://')) {
-        try {
-          base64Data = await FileSystem.readAsStringAsync(imageSource, { encoding: FileSystem.EncodingType.Base64 });
-        } catch (fsErr) {
-          console.error('FileSystem read failed', fsErr?.message);
-        }
-      } else if (typeof imageSource === 'string') {
-        base64Data = imageSource;
-      }
+      // Save image URI directly to database (no base64 conversion needed)
+      console.log('Saving image URI to database...');
+      const result = await DatabaseService.saveConsumerImage(
+        consumerId,
+        name,
+        imageSource,
+        gpsCoordinates,
+        networkInfo
+      );
 
-      setValue(name, 'photo_captured');
-
-      if (base64Data && typeof base64Data === 'string') {
-        const result = await DatabaseService.saveConsumerImage(
-          consumerId,
-          name,
-          base64Data,
-          gpsCoordinates, // Will be null for other photos
-          networkInfo     // Will be null for other photos
+      if (!result.success) {
+        console.error('Database save failed:', result.error);
+        Alert.alert(
+          'Save Error',
+          `Failed to save image to database: ${result.error || 'Unknown error'}`,
+          [{ text: 'OK' }]
         );
-        if (!result.success) {
-          console.error('Error', `Failed to save image to database: ${result.error || 'Unknown error'}`);
-        } else {
-          if (gpsCoordinates) {
-            setValue('latitude', gpsCoordinates.latitude.toString());
-            setValue('longitude', gpsCoordinates.longitude.toString());
-          }
-        }
-      } else {
-        console.error('Error', 'Could not process captured image.');
+        return;
       }
+
+      console.log('Image saved successfully to database');
+
+      // Update GPS coordinates in form if available
+      if (gpsCoordinates) {
+        setValue('latitude', gpsCoordinates.latitude.toString());
+        setValue('longitude', gpsCoordinates.longitude.toString());
+        console.log('GPS coordinates updated in form');
+      }
+
+      // Show success message
+      Alert.alert(
+        'Success',
+        'Image captured and saved successfully',
+        [{ text: 'OK' }]
+      );
+
     } catch (e) {
-      console.error('Failed to process/save image:', { name, imageSource, error: e?.message });
+      console.error('Failed to process/save image:', {
+        name,
+        imageSource,
+        error: e?.message,
+        stack: e?.stack
+      });
+
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to process image. Please try again.';
+      if (e.message?.includes('file')) {
+        errorMessage = 'Image file error. Please try capturing again.';
+      } else if (e.message?.includes('database')) {
+        errorMessage = 'Failed to save image. Please check storage space.';
+      } else if (e.message?.includes('size')) {
+        errorMessage = 'Image file size issue. Please try with a different image.';
+      }
+
+      Alert.alert('Processing Error', errorMessage, [{ text: 'OK' }]);
     }
   };
 
@@ -1052,6 +1149,14 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
 
 
   const onSubmit = async (data) => {
+    console.log('Form submission started with data:', data);
+
+    // Enforce primary mobile OTP verification before submission
+    if (!isMobileVerified) {
+      Alert.alert('Mobile Verification Required', 'Please verify the primary mobile number via OTP before submitting.');
+      return;
+    }
+
     // Restore detailed validation logic
     const validation = validateFormCompletion();
     if (!validation.isComplete) {
@@ -1060,22 +1165,67 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
       );
 
       if (photoFields.length > 0) {
-        console.warn(
-          'Photos Missing',
-          `Please capture the following required photos before submitting:\n\n${photoFields.map(field => {
-            switch (field) {
-              case 'polePhoto': return '• Pole Photo';
-              case 'oldMeterPhoto': return '• Old Meter Photo';
-              case 'oldMeterKWHPhoto': return '• Old Meter KWH Photo';
-              case 'housePhoto': return '• House Photo';
-              default: return `• ${field}`;
-            }
-          }).join('\n')}`
+        const photoNames = photoFields.map(field => {
+          switch (field) {
+            case 'polePhoto': return '• Pole Photo';
+            case 'oldMeterPhoto': return '• Old Meter Photo';
+            case 'oldMeterKWHPhoto': return '• Old Meter KWH Photo';
+            case 'housePhoto': return '• House Photo';
+            default: return `• ${field}`;
+          }
+        }).join('\n');
+
+        Alert.alert(
+          'Photos Required',
+          `Please capture the following required photos before submitting:\n\n${photoNames}`,
+          [{ text: 'OK' }]
         );
       } else {
-        console.warn(
+        const missingFieldNames = validation.missingFields.map(field => {
+          // Convert field names to human-readable format
+          switch (field) {
+            case 'correctConsumerName': return 'Correct Consumer Name';
+            case 'correctFatherHusbandName': return 'Correct Father/Husband Name';
+            case 'actualUserType': return 'Actual User Type';
+            case 'actualUserName': return 'Actual User Name';
+            case 'actualCategoryOfUse': return 'Actual Category of Use';
+            case 'actualConsumerAddress': return 'Actual Consumer Address';
+            case 'area': return 'Area';
+            case 'districtName': return 'District Name';
+            case 'tehsilName': return 'Tehsil Name';
+            case 'block': return 'Block';
+            case 'villageName': return 'Village Name';
+            case 'landmark': return 'Landmark';
+            case 'ltPoleCode': return 'LT Pole Code';
+            case 'numberOfConnections': return 'Number of Connections';
+            case 'connectionStatus': return 'Connection Status';
+            case 'meteredConsumer': return 'Metered Consumer';
+            case 'correctMeterMake': return 'Correct Meter Make';
+            case 'correctSerialNumber': return 'Correct Serial Number';
+            case 'meterBoxStatus': return 'Meter Box Status';
+            case 'meterBoxSealingStatus': return 'Meter Box Sealing Status';
+            case 'oldMeterStatus': return 'Old Meter Status';
+            case 'clearLineOfSight': return 'Clear Line of Sight';
+            case 'meterLocation': return 'Meter Location';
+            case 'meterInMetallicEnclosure': return 'Meter in Metallic Enclosure';
+            case 'serviceLineStatus': return 'Service Line Status';
+            case 'installedServiceCable': return 'Installed Service Cable';
+            case 'conditionOfInstalledServiceCable': return 'Condition of Installed Service Cable';
+            case 'armoredServiceCable': return 'Armored Service Cable';
+            case 'neutralAvailability': return 'Neutral Availability';
+            case 'meterShiftingRequired': return 'Meter Shifting Required';
+            case 'lengthOfCable': return 'Length of Cable';
+            case 'ltPoleCondition': return 'LT Pole Condition';
+            case 'ciRemarks': return 'CI Remarks';
+            case 'jeName': return 'JE Name';
+            default: return field;
+          }
+        }).join('\n');
+
+        Alert.alert(
           'Form Incomplete',
-          `Please fill all mandatory fields. Missing:\n\n${validation.missingFields.join('\n')}`
+          `Please fill all mandatory fields before submitting:\n\n${missingFieldNames}`,
+          [{ text: 'OK' }]
         );
       }
       return; // Stop submission
@@ -1555,14 +1705,47 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   placeholder="Landmark"
                 />
 
-                <FormInput
-                  control={control}
-                  name="verifiedMobileNumber"
-                  label="Verified Mobile Number"
-                  keyboardType="phone-pad"
-                  error={errors.verifiedMobileNumber}
-                  placeholder="Verified Mobile Number"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Verified Mobile Number <Text style={styles.requiredIndicator}>*</Text></Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flex: 1 }}>
+                      <Controller
+                        control={control}
+                        name="verifiedMobileNumber"
+                        rules={{ required: 'This field is required' }}
+                        render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+                          <>
+                            <Input
+                              placeholder="Verified Mobile Number"
+                              value={value}
+                              onChangeText={onChange}
+                              onBlur={onBlur}
+                              keyboardType="phone-pad"
+                              editable={currentStatus !== 'Completed'}
+                              style={[styles.inputField, error && { borderColor: COLORS.error }]}
+                              error={!!error}
+                            />
+                            {error ? (
+                              <Text style={styles.errorText}>{error.message}</Text>
+                            ) : null}
+                          </>
+                        )}
+                      />
+                    </View>
+                    <View style={{ width: 8 }} />
+                    <Button
+                      title={isMobileVerified ? 'Verified' : 'Verify'}
+                      onPress={() => setOtpVisible(true)}
+                      disabled={isMobileVerified || currentStatus === 'Completed'}
+                      style={{ paddingHorizontal: 12 }}
+                    />
+                  </View>
+                  <View style={{ marginTop: 6 }}>
+                    <Text style={{ color: isMobileVerified ? COLORS.success : COLORS.error }}>
+                      {isMobileVerified ? 'Mobile number verified' : 'Mobile number not verified'}
+                    </Text>
+                  </View>
+                </View>
 
                 <FormInput
                   control={control}
@@ -1590,6 +1773,9 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                 isExpanded={expandedSections.electricalNetwork}
                 toggleSection={toggleSection}
               >
+                <View style={{ marginBottom: 8, flexDirection: 'row', justifyContent: 'center' }}>
+                  <Button title="Select a DTR" onPress={() => setDtrModalVisible(true)} />
+                </View>
                 <FormInput
                   control={control}
                   name="subStationCode"
@@ -1644,6 +1830,21 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   placeholder="Dtr Name"
                 />
 
+                <View style={{ marginTop: 4, marginBottom: 8 }}>
+                  <View style={{ borderRadius: 10, borderWidth: 1, borderColor: '#BBDEFB', backgroundColor: '#E3F2FD', padding: 10 }}>
+                    <Text style={{ color: '#0D47A1', fontWeight: '700', fontSize: 13 }}>{getValues('subStationName') || 'Sub Station'}</Text>
+                    <Text style={{ color: '#0D47A1', fontSize: 12 }}>({getValues('subStationCode') || '—'})</Text>
+                    <View style={{ marginTop: 8, marginLeft: 8, borderRadius: 10, borderWidth: 1, borderColor: '#C8E6C9', backgroundColor: '#E8F5E9', padding: 10 }}>
+                      <Text style={{ color: '#1B5E20', fontWeight: '700', fontSize: 13 }}>{getValues('feederName') || 'Feeder'}</Text>
+                      <Text style={{ color: '#1B5E20', fontSize: 12 }}>({getValues('feederCode') || '—'})</Text>
+                      <View style={{ marginTop: 8, marginLeft: 8, borderRadius: 10, borderWidth: 1, borderColor: '#FFE0B2', backgroundColor: '#FFF3E0', padding: 10 }}>
+                        <Text style={{ color: '#E65100', fontWeight: '700', fontSize: 13 }}>{getValues('dtrName') || 'DTR'}</Text>
+                        <Text style={{ color: '#E65100', fontSize: 12 }}>({getValues('dtrCode') || '—'})</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
                 <FormInput
                   control={control}
                   name="ltPoleCode"
@@ -1659,7 +1860,12 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   label="Pole Photo"
                   required
                   error={errors.polePhoto}
-                  onPhotoCapture={(base64) => handlePhotoCapture('pole_photo', base64)}
+                  watermarkData={{
+                    userName: currentUser?.name,
+                    userId: currentUser?.id,
+                    location: { latitude: getValues('latitude'), longitude: getValues('longitude') },
+                  }}
+                  onPhotoCapture={(name, imageSource) => handlePhotoCapture(name, imageSource)}
                 />
               </CollapsibleSection>
 
@@ -2206,9 +2412,16 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   label="Old Meter Photo"
                   required
                   error={errors.oldMeterPhoto}
-                                                      onPhotoCapture={(base64) =>
-                                                        handlePhotoCapture('old_meter_photo', base64)
-                                                      }                />
+                  watermarkData={{
+                    userName: currentUser?.name,
+                    userId: currentUser?.id,
+                    location: { latitude: getValues('latitude'), longitude: getValues('longitude') },
+                    consumerId: getValues('consumerId'),
+                    consumerAddress: getValues('actualConsumerAddress') || getValues('consumerAddress'),
+                  }}
+                  onPhotoCapture={(name, imageSource) => // name is 'oldMeterPhoto'
+                    handlePhotoCapture('old_meter_photo', imageSource) // Pass the correct imageSource
+                  }                />
 
                 <PhotoCapture
                   control={control}
@@ -2216,9 +2429,14 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   label="Old Meter Kwh Photo"
                   required
                   error={errors.oldMeterKWHPhoto}
-                                                      onPhotoCapture={(base64) =>
-                                                        handlePhotoCapture('old_meter_kwh_photo', base64)
-                                                      }                />
+                  watermarkData={{
+                    userName: currentUser?.name,
+                    userId: currentUser?.id,
+                    location: { latitude: getValues('latitude'), longitude: getValues('longitude') },
+                  }}
+                  onPhotoCapture={(name, imageSource) => // name is 'oldMeterKWHPhoto'
+                    handlePhotoCapture('old_meter_kwh_photo', imageSource) // Pass the correct imageSource
+                  }                />
 
                 <PhotoCapture 
                   control={control}
@@ -2226,7 +2444,12 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
                   label="House Photo" 
                   required
                   error={errors.housePhoto}
-                  onPhotoCapture={(base64) => handlePhotoCapture('house_photo', base64)}
+                  watermarkData={{
+                    userName: currentUser?.name,
+                    userId: currentUser?.id,
+                    location: { latitude: getValues('latitude'), longitude: getValues('longitude') },
+                  }}
+                  onPhotoCapture={(name, imageSource) => handlePhotoCapture('house_photo', imageSource)}
                 />
               </CollapsibleSection>
             </View>
@@ -2264,13 +2487,73 @@ export default function ConsumerIndexingFormScreen({ navigation, route }) {
               title="Submit"
               onPress={handleFormSubmit(onSubmit, onFormError)}
               style={styles.submitButton}
-              disabled={loading}
+              disabled={loading || !isMobileVerified}
               loading={loading}
             />
           </View>
         )}
       </KeyboardAvoidingView>
-      
+
+      {/* DTR Selector Modal */}
+      <DTRSelectorModal
+        visible={dtrModalVisible}
+        onClose={() => setDtrModalVisible(false)}
+        onSelect={({ dtrCode, dtrName, feederCode, feederName, subStationCode, subStationName }) => {
+          setValue('dtrCode', dtrCode);
+          setValue('dtrName', dtrName);
+          setValue('feederCode', feederCode);
+          setValue('feederName', feederName);
+          setValue('subStationCode', subStationCode);
+          setValue('subStationName', subStationName);
+        }}
+      />
+
+      <Modal visible={otpVisible} transparent animationType="slide" onRequestClose={() => setOtpVisible(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', width: '90%', borderRadius: 12, padding: 16 }}>
+            <Text style={[textStyles.title, { color: '#212121', textAlign: 'center', marginBottom: 8 }]}>Enter OTP</Text>
+            <Text style={{ textAlign: 'center', color: '#616161', marginBottom: 12 }}>OTP sent to {verifiedPhone || primaryMobile}</Text>
+            <View style={otpStyles.otpContainer}>
+              {otp.map((digit, index) => (
+                <OTPInput
+                  key={index}
+                  value={digit}
+                  onChangeText={(t) => {
+                    const arr = [...otp];
+                    arr[index] = t;
+                    setOtp(arr);
+                  }}
+                />
+              ))}
+            </View>
+            <View style={{ marginTop: 16 }}>
+              <Button
+                title="Get OTP"
+                onPress={handleSendOtpForMobile}
+                loading={isSendingOtp}
+                disabled={isSendingOtp}
+                style={{ alignSelf: 'stretch', paddingVertical: 8 }}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  onPress={() => setOtpVisible(false)}
+                  style={{ flex: 1, paddingVertical: 8, marginRight: 8 }}
+                />
+                <Button
+                  title="Verify"
+                  onPress={handleVerifyOtpForMobile}
+                  loading={isVerifyingOtp}
+                  disabled={isVerifyingOtp}
+                  style={{ flex: 1, paddingVertical: 8 }}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Floating Console Button */}
       <TouchableOpacity
         style={styles.floatingConsoleButton}

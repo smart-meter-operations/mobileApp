@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 // Import components and services
 import { AppHeader, Button, Footer, OTPInput } from '../components';
 import { ApiService } from '../services';
+import networkService from '../services/networkService';
 import {
   useKeyboard,
   useEntranceAnimation,
@@ -87,6 +88,29 @@ export default function OTPAPIScreen({ route, navigation }) {
 
       if (response.success && response.data?.status === 'success') {
         console.log('✅ OTP verified successfully');
+        // After phone unlock validation step, show informational alert if non-Airtel
+        try {
+          const carrierRaw = await networkService.getPrimarySimCarrier();
+          const carrier = (carrierRaw || '').toString().trim().toLowerCase();
+          const isAirtel = carrier.includes('airtel');
+          if (carrier && !isAirtel) {
+            Alert.alert(
+              'Validation',
+              'Primary Slot Network provider mismatch. Please rectify and try again.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.navigate('PhoneUnlock')
+                }
+              ],
+              { cancelable: false }
+            );
+            return;
+          }
+        } catch (e) {
+          // If carrier can't be determined, silently proceed
+        }
+        // Proceed normally
         Alert.alert('Success', 'OTP verified successfully!', [
           {
             text: 'OK',

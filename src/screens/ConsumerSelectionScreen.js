@@ -12,8 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
-import { DatabaseService } from '../services';
+import * as Location from 'expo-location'; 
+import DatabaseService from '../services/databaseService';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 const mapLabelToFilter = (label) => {
   switch (label) {

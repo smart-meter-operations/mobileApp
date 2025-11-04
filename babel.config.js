@@ -8,7 +8,6 @@ module.exports = function(api) {
         {
           alias: {
             'react-native/Libraries/Utilities/codegenNativeCommands': './src/utils/codegenNativeCommands.js',
-            'react-native-maps': './src/utils/mapFallback.js',
           },
         },
       ],

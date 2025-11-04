@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Test for CORS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>File Upload Test for CORS</h1>
+    <p>Select a file and upload it to test for CORS errors. This simulates a browser-based request.</p>
+    
+    <input type="file" id="fileInput" accept=".txt,.png,.jpg,.jpeg">
+    <button onclick="uploadFile()">Upload File</button>
+    
+    <div id="output"></div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                document.getElementById('output').innerHTML = '<p class="error">Please select a file first.</p>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('is_private', '0');
+            formData.append('folder', 'Home/Consumer Survey');
+            formData.append('file', file);
+
+            const headers = {
+                'Authorization': 'token 0a3ac2415acc9a4:ee04f1881306858',
+                'Cookie': 'sid=Guest'
+            };
+
+            try {
+                const response = await fetch('https://sponge-balanced-cat.ngrok-free.app/api/method/upload_file', {
+                    method: 'POST',
+                    headers: headers,
+                    body: formData
+                });
+
+                const result = await response.text();
+                if (response.ok) {
+                    document.getElementById('output').innerHTML = `<p class="success">Upload successful! Response: ${result}</p>`;
+                } else {
+                    document.getElementById('output').innerHTML = `<p class="error">Upload failed with status ${response.status}: ${result}</p>`;
+                }
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    document.getElementById('output').innerHTML = `<p class="error">CORS Error: ${error.message}</p>`;
+                } else {
+                    document.getElementById('output').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

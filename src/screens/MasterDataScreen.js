@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { readString } from 'react-native-csv';
-import { DatabaseService } from '../services';
+import DatabaseService from '../services/databaseService';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants';
 import { insertDummyData } from '../utils/insertDummyData';
 // Add JSZip for creating zip files

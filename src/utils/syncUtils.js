@@ -74,61 +74,122 @@ const buildMappedPayload = (rawValues, imageFileNames = {}) => {
 };
 
 export const submitConsumerSurveyGroup = async (consumerRecord) => {
+  console.log('[FIX-ID: SMOV-20251017-008] submitConsumerSurveyGroup called with consumerRecord:', consumerRecord);
   const consumerNumber = consumerRecord.consumerId || consumerRecord.CONSUMER_ID_M;
   if (!consumerNumber) {
+    console.error('[FIX-ID: SMOV-20251017-008] Missing consumer number for submission.');
     return { success: false, error: 'Missing consumer number for submission.' };
   }
 
   const docName = consumerRecord.survey_id || consumerNumber || 'CI-2025-006';
+  console.log('[FIX-ID: SMOV-20251017-008] Processing consumer survey group for:', docName);
 
   // Step 1: Get images from DB to know how many filenames to generate
   const imagesToUpload = await databaseService.getImagesForConsumer(consumerNumber);
+  console.log('[FIX-ID: SMOV-20251017-008] Retrieved imagesToUpload:', imagesToUpload);
   const imageFileNames = {};
   const generatedFileNames = [];
 
   if (imagesToUpload.length > 0) {
-    const imageFieldNames = ['attach_pole_photo', 'old_meter_photo', 'old_meter_kwh_reading_photo', 'house_photo'];
+    // Map database image types to API field names
+    const imageTypeToFieldName = {
+      'pole_photo': 'attach_pole_photo',
+      'old_meter_photo': 'old_meter_photo',
+      'old_meter_kwh_photo': 'old_meter_kwh_reading_photo',
+      'house_photo': 'house_photo'
+    };
+    
     for (let i = 0; i < imagesToUpload.length; i++) {
-      const fieldName = imageFieldNames[i];
-      const fileName = `/files/${consumerNumber}_image${i + 1}.jpg`;
-      if(fieldName) imageFileNames[fieldName] = fileName;
-      generatedFileNames.push(fileName);
+      const image = imagesToUpload[i];
+      const fieldName = imageTypeToFieldName[image.image_type] || `image_field_${i+1}`;
+      const generatedFileName = `/files/${consumerNumber}_${image.image_type}_${Date.now()}.jpg`;
+      imageFileNames[fieldName] = generatedFileName;
+      generatedFileNames.push({ ...image, generatedFileName }); // Store full image object with its new name
+      console.log(`[FIX-ID: SMOV-20251017-008] Mapping image ${i+1}: db_type=${image.image_type}, api_field=${fieldName}, file=${generatedFileName}`);
     }
   }
 
-  // Step 2: Build the main data payload, now including the generated filenames
+  // Step 2: Build the main data payload, now including the generated file names
   const payload = buildMappedPayload(consumerRecord, imageFileNames);
+  console.log('[FIX-ID: SMOV-20251017-008] Built payload with image filenames:', payload);
 
   // Step 3: Submit the main data via PUT
+  console.log('[FIX-ID: SMOV-20251017-008] Submitting main data via PUT for:', docName);
   const dataApiRes = await ApiService.updateConsumerSurveyAbsolute({ docName, payload });
 
   if (!dataApiRes.success) {
-    console.error(`Group submission failed at data PUT for ${docName}:`, dataApiRes.message);
+    console.error(`[FIX-ID: SMOV-20251017-008] Group submission failed at data PUT for ${docName}:`, dataApiRes.message);
     return { success: false, error: `Data submission failed: ${dataApiRes.message}` };
   }
 
-  console.log(`Data PUT successful for ${docName}. Proceeding to image uploads.`);
+  console.log(`[FIX-ID: SMOV-20251017-008] Data PUT successful for ${docName}. Proceeding to image uploads.`);
 
   // Step 4: If data submission was successful, upload images sequentially but don't stop on failure
   if (imagesToUpload.length > 0) {
-    for (let i = 0; i < imagesToUpload.length; i++) {
-      const image = imagesToUpload[i];
-      const fileName = generatedFileNames[i];
+    console.log(`[FIX-ID: SMOV-20251017-008] Starting image uploads for ${imagesToUpload.length} images`);
+    for (const imageToUpload of generatedFileNames) {
+      const fileName = imageToUpload.generatedFileName;
       try {
+        console.log(`[FIX-ID: SMOV-20251017-008] Attempting to upload image: ${fileName}`);
+        console.log(`[FIX-ID: SMOV-20251017-008] Image data for upload:`, imageToUpload);
+
+        // Validate image data before upload
+        if (!imageToUpload?.image_base64) {
+          console.warn(`[FIX-ID: SMOV-20251017-008] Skipping image upload - no URI found for ${fileName}`);
+          continue;
+        }
+        
+        // Validate that the image URI is not a placeholder value
+        const imageUri = imageToUpload.image_base64;
+        console.log(`[FIX-ID: SMOV-20251017-008] Checking imageUri for ${fileName}:`, imageUri);
+        if (typeof imageUri !== 'string') {
+          console.warn(`[FIX-ID: SMOV-20251017-008] Skipping image upload - invalid URI type for ${fileName}:`, typeof imageUri);
+          continue;
+        }
+        
+        // Check if it's a placeholder value
+        if (imageUri === 'photo_captured') {
+          console.warn(`[FIX-ID: SMOV-20251017-008] Skipping image upload - placeholder value found for ${fileName}:`, imageUri);
+          continue;
+        }
+        
+        // Check if it's a valid file URI or content URI
+        if (!imageUri.startsWith('file://') && !imageUri.startsWith('content://') && !imageUri.startsWith('ph://')) {
+          // Check if it might be a base64 string
+          if (imageUri.startsWith('data:image/') || imageUri.startsWith('/9j/') || imageUri.startsWith('iVBOR')) {
+            console.log(`[FIX-ID: SMOV-20251017-008] Image appears to be base64 data for ${fileName}`);
+          } else {
+            console.warn(`[FIX-ID: SMOV-20251017-008] Skipping image upload - invalid URI format for ${fileName}:`, imageUri.substring(0, 50) + '...');
+            continue;
+          }
+        }
+
         const imageApiRes = await ApiService.uploadImage({
-          imageBase64: image.image_base64,
+          imageUri: imageUri, // Use the validated imageUri
           fileName: fileName,
         });
-        if (!imageApiRes.success) {
-          console.log(`Image POST for ${fileName} failed:`, imageApiRes.message);
+
+        if (imageApiRes.success) {
+          console.log(`[FIX-ID: SMOV-20251017-008] ✅ Image ${fileName} uploaded successfully`);
+        } else {
+          console.warn(`[FIX-ID: SMOV-20251017-008] ❌ Image upload failed for ${fileName}: ${imageApiRes.message}`);
+          // Continue with other images even if one fails
         }
       } catch (uploadError) {
-        console.log(`Image POST for ${fileName} threw an exception:`, uploadError);
+        console.error(`[FIX-ID: SMOV-20251017-008] 💥 Image upload threw exception for ${fileName}:`, uploadError);
+        // Add more detailed error logging
+        if (uploadError && uploadError.message) {
+          console.error(`[FIX-ID: SMOV-20251017-008] Detailed error for ${fileName}:`, uploadError.message);
+          if (uploadError.stack) {
+            console.error(`[FIX-ID: SMOV-20251017-008] Stack trace for ${fileName}:`, uploadError.stack);
+          }
+        }
+        // Continue with other images even if one throws an exception
       }
     }
   }
 
-  console.log(`Image upload sequence finished for ${docName}.`);
+  console.log(`[FIX-ID: SMOV-20251017-008] Image upload sequence finished for ${docName}.`);
   return { success: true }; // Always return true if the main data PUT was successful
 };
 

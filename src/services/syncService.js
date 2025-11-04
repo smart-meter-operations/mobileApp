@@ -412,7 +412,11 @@ class SyncService {
             }
             
             console.log(`⏳ Making API call to updateConsumerSurveyAbsolute...`);
-            apiResponse = await ApiService.updateConsumerSurveyAbsolute({ docName, payload });
+            apiResponse = await ApiService.updateConsumerSurveyAbsolute({ 
+              docName, 
+              payload,
+              token: '0a3ac2415acc9a4:ee04f1881306858'
+            });
             
             const responseTimestamp = new Date().toISOString();
             console.log(`✅ [${responseTimestamp}] SYNC RESPONSE RECEIVED`);

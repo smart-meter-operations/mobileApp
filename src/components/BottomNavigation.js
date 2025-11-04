@@ -39,6 +39,10 @@ const BottomNavigation = ({ activeTab, onTabPress, tabs = [], onMapPress, naviga
       // Handle Masterdata tab press
       console.log('Masterdata tab pressed');
       navigation.navigate('MasterData');
+    } else if (tabName === 'GIS') {
+      // Handle GIS tab press
+      console.log('GIS tab pressed');
+      navigation.navigate('GISScreen');
     } else {
       // Handle other tabs
       onTabPress(tabName);

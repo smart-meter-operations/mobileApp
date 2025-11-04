@@ -24,7 +24,8 @@ import {
   PerformanceMetrics,
   RecentActivities
 } from '../components';
-import { DataService, NetworkService, DatabaseService } from '../services';
+import { DataService, NetworkService } from '../services';
+import DatabaseService from '../services/databaseService';
 import { performManualSync } from '../utils/syncUtils';
 import { insertDummyData, clearAllData } from '../utils/insertDummyData';
 import {
@@ -273,6 +274,7 @@ export default function DashboardScreen({ navigation }) {
   const tabs = [
     { name: 'Home', title: 'Home', icon: 'home-outline' },
     { name: 'Masterdata', title: 'Masterdata', icon: 'folder-open-outline' },
+    { name: 'GIS', title: 'GIS', icon: 'map-outline' },
     { name: 'Capture', title: 'Capture', icon: 'camera-outline' },
   ];
 

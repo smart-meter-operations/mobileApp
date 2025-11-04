@@ -151,14 +151,16 @@ const inAppConsole = new InAppConsole();
 
 // React component
 const InAppConsoleComponent = ({ visible, onClose }) => {
+  const [scrollViewRef, setScrollViewRef] = useState(null);
   const [logs, setLogs] = useState(inAppConsole.getLogs());
-  const [filter, setFilter] = useState('all'); // all, api, gps, sim, error
+  const [filter, setFilter] = useState('all');
   const [expandedLogs, setExpandedLogs] = useState(new Set());
   
   useEffect(() => {
     const unsubscribe = inAppConsole.subscribe(setLogs);
     return unsubscribe;
   }, []);
+
   
   const filteredLogs = logs.filter(log => {
     if (filter === 'all') return true;
@@ -178,6 +180,13 @@ const InAppConsoleComponent = ({ visible, onClose }) => {
     }
   };
   
+  const toggleLogExpansion = (logId) => {
+    setExpandedLogs(prev => {
+      const newSet = new Set(prev);
+      newSet.has(logId) ? newSet.delete(logId) : newSet.add(logId);
+      return newSet;
+    });
+  };
   const copyToClipboard = async (text, label = 'Log') => {
     try {
       await Clipboard.setStringAsync(text);
@@ -194,25 +203,35 @@ const InAppConsoleComponent = ({ visible, onClose }) => {
       copyToClipboard(jsonText, 'JSON');
     }
   };
-  
+
   const copyFullLog = (log) => {
-    const fullText = `[${log.fullTimestamp}] ${log.level.toUpperCase()}\n${log.message}`;
-    copyToClipboard(fullText, 'Full log');
+    if (log) {
+      const logText = `[${log.fullTimestamp}] ${log.level.toUpperCase()}\n${log.message}`;
+      copyToClipboard(logText, 'Full Log');
+    }
   };
   
-  const toggleLogExpansion = (logId) => {
-    const newExpanded = new Set(expandedLogs);
-    if (newExpanded.has(logId)) {
-      newExpanded.delete(logId);
-    } else {
-      newExpanded.add(logId);
+  const copyAllLogs = async () => {
+    try {
+      const allLogsText = filteredLogs.map(log =>
+        `[${log.fullTimestamp}] ${log.level.toUpperCase()}\n${log.message}\n`
+      ).join('\n');
+      await Clipboard.setStringAsync(allLogsText);
+      Alert.alert('Copied!', 'All filtered logs copied to clipboard');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to copy logs to clipboard');
     }
-    setExpandedLogs(newExpanded);
+  };
+  
+  const scrollToBottom = () => {
+    if (scrollViewRef) {
+      scrollViewRef.scrollToEnd({ animated: true });
+    }
   };
   
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
+      <View style={[styles.container, !visible && { pointerEvents: 'none' }]}>
         <View style={styles.header}>
           <Text style={styles.title}>In-App Console ({filteredLogs.length} logs)</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -244,9 +263,22 @@ const InAppConsoleComponent = ({ visible, onClose }) => {
           >
             <Text style={styles.clearText}>CLEAR</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.copyAllButton}
+            onPress={copyAllLogs}
+          >
+            <Text style={styles.copyAllText}>COPY ALL</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.scrollToBottomButton}
+            onPress={scrollToBottom}
+          >
+            <Text style={styles.scrollToBottomText}>⬇️</Text>
+          </TouchableOpacity>
         </View>
         
         <ScrollView 
+          ref={(ref) => setScrollViewRef(ref)}
           style={styles.logContainer}
           showsVerticalScrollIndicator={true}
         >
@@ -375,7 +407,21 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: COLORS.error,
   },
-  clearText: {
+  copyAllButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    marginLeft: SPACING.xs,
+    borderRadius: 4,
+    backgroundColor: COLORS.success,
+  },
+  scrollToBottomButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    marginLeft: SPACING.xs,
+    borderRadius: 4,
+    backgroundColor: COLORS.info,
+  },
+  scrollToBottomText: {
     color: '#fff',
     fontSize: TYPOGRAPHY.fontSizes.sm,
     fontWeight: 'bold',

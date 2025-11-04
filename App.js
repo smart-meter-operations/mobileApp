@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen, OTPScreen, PhoneUnlockScreen, SuccessScreen, DashboardScreen, CaptureScreen, UserProfileScreen, MapScreen, ConsumerIndexingFormScreen, ConsumerSelectionScreen, MasterDataScreen, MeterCaptureScreen, MeterInfoScreen } from './src/screens';
 import OTPAPIScreen from './src/screens/OTPAPIScreen';
 import TasksListScreen from './src/screens/TasksListScreen';
+import GISScreen from './src/screens/GIS/GISScreen';
+import TraceMapScreen from './src/screens/GIS/TraceMapScreen';
 import { SCREENS } from './src/constants';
 
 const Stack = createNativeStackNavigator();
@@ -30,6 +32,8 @@ export default function App() {
         <Stack.Screen name="MasterData" component={MasterDataScreen} />
         <Stack.Screen name="MeterCapture" component={MeterCaptureScreen} />
         <Stack.Screen name="MeterInfo" component={MeterInfoScreen} />
+        <Stack.Screen name="GISScreen" component={GISScreen} />
+        <Stack.Screen name="TraceMapScreen" component={TraceMapScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

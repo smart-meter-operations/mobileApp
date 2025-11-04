@@ -14,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 // Import components and services
 import { AppHeader, Button, Footer, OTPInput } from '../components';
 import { SmsService } from '../services';
+import networkService from '../services/networkService';
 import {
   useKeyboard,
   useEntranceAnimation,
@@ -76,6 +77,28 @@ export default function OTPScreen({ route, navigation }) {
     try {
       // Accept only the hardcoded OTP 123456
       if (otpCode === '123456') {
+        // After phone unlock validation step, show informational alert if non-Airtel
+        try {
+          const carrierRaw = await networkService.getPrimarySimCarrier();
+          const carrier = (carrierRaw || '').toString().trim().toLowerCase();
+          const isAirtel = carrier.includes('airtel');
+          if (carrier && !isAirtel) {
+            Alert.alert(
+              'Validation',
+              'Primary Slot Network provider mismatch. Please rectify and try again.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.navigate('PhoneUnlock')
+                }
+              ],
+              { cancelable: false }
+            );
+            return;
+          }
+        } catch (e) {
+          // If carrier can't be determined, silently proceed
+        }
         navigation.navigate('PhoneUnlock');
       } else {
         Alert.alert('Error', 'Invalid OTP. Please use 123456 for demo purposes.');

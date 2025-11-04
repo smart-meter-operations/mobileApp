@@ -441,6 +441,7 @@ class DatabaseService {
           role TEXT,
           status TEXT DEFAULT 'offline',
           avatar TEXT,
+          sim_provider TEXT,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP,
           updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
           created_by TEXT,
@@ -859,27 +860,28 @@ sim2CellId TEXT,
   }
 
   // Save an image for a consumer with optional GPS coordinates and network info
-  async saveConsumerImage(consumerId, imageType, imageBase64, gpsCoordinates = null, networkInfo = null) {
+  async saveConsumerImage(consumerId, imageType, imageUri, gpsCoordinates = null, networkInfo = null) {
     try {
       console.log('saveConsumerImage called with:', {
         consumerId,
         imageType,
-        hasBase64: !!imageBase64,
+        hasUri: !!imageUri,
         hasGPS: !!gpsCoordinates,
         hasNetwork: !!networkInfo
       });
 
-      if (!consumerId || !imageType || !imageBase64) {
-        throw new Error('Consumer ID, image type, and image data are required.');
+      if (!consumerId || !imageType || !imageUri) {
+        throw new Error('Consumer ID, image type, and image URI are required.');
       }
       
-      // Save image to consumer_images table
-      console.log('Saving image to consumer_images table...');
+      // Save image URI to consumer_images table
+      console.log('Saving image URI to consumer_images table...');
       await this.db.runAsync(
         `INSERT OR REPLACE INTO consumer_images (consumer_id, image_type, image_base64) VALUES (?, ?, ?)`,
-        [consumerId, imageType, imageBase64]
+        [consumerId, imageType, imageUri]
       );
-      console.log('Image saved to consumer_images table successfully');
+      console.log('Image URI saved to consumer_images table successfully');
+      // Note: image_base64 field now contains file URI, not base64 data (field name is legacy)
       
       // Prepare update fields and values
       let updateFields = [];
@@ -971,12 +973,12 @@ sim2CellId TEXT,
   // User operations
   async saveUser(userData) {
     try {
-      const { phone, name, role, status = 'offline', avatar } = userData;
+      const { phone, name, role, status = 'offline', avatar, sim_provider } = userData;
 
       const result = await this.db.runAsync(
-        `INSERT OR REPLACE INTO users (phone, name, role, status, avatar, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [phone, name, role, status, avatar, new Date().toISOString()]
+        `INSERT OR REPLACE INTO users (phone, name, role, status, avatar, sim_provider, updated_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [phone, name, role, status, avatar, sim_provider, new Date().toISOString()]
       );
 
       await this.addToSyncQueue(
@@ -1549,64 +1551,64 @@ sim2CellId TEXT,
           VALUES (?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 
         insertValues = (record) => [
-          record.survey_id || 'CI-2025-006',
-          record.CONSUMER_ID_M,
-          record.STATUS,
-          record.DISCOM_M,
-          record.ZONE_NAME_WITH_CODE_M,
-          record.CIRCLE_NAME_WITH_CODE_M,
-          record.DIVISION_NAME_WITH_CODE_M,
-          record.SUB_DIVISION_NAME_WITH_CODE_M,
-          record.CONSUMER_NAME_M,
-          record.FATHER_HUSBAND_PROPRITEOR_NAME_M,
-          record.SANCTIONED_LOAD_M,
-          record.CONSUMER_ADDRESS_M,
-          record.REGISTERED_MOBILE_NO_AS_PER_RMS_M,
-          record.SUB_STATION_CODE_M,
-          record.SUB_STATION_NAME_M,
-          record.FEEDER_CODE_M,
-          record.FEEDER_NAME_M,
-          record.DTR_CODE_M,
-          record.DTR_NAME_M,
-          record.CATEGORY_IN_MASTER_DATA_M,
-          record.SUB_CATEGORY_CODE_M,
-          record.OLD_METER_SERIAL_NUMBER_M,
-          record.OLD_METER_PHASE_M,
-          record.OLD_MF_M,
-          record.BILLING_TYPE_M,
-          record.LATITUDE_M,
-          record.LONGITUDE_M,
-          record.OLD_METER_BADGE_NUMBER_M,
-          record.METER_MAKE_M,
-          record.CONNECTED_LOAD_M,
-          record.OLD_CONS_NO_M,
-          record.READING_DIGITS_M,
-          record.TDC_FLAG_M,
-          record.MAXIMUM_DEMAND_M,
-          record.METER_READING_SEQUENCE_M,
-          record.EMAIL_M,
-          record.consumer_name,
-          record.account_number,
-          record.address,
-          record.contact_number,
-          record.meter_serial_number,
-          record.meter_type,
-          record.sanctioned_load,
-          record.feeder_code,
-          record.dt_code,
-          record.pole_number,
-          record.latitude,
-          record.longitude,
-          record.remarks,
-          record.email,
-          record.pole_photo,
-          record.old_meter_photo,
-          record.old_meter_kwh_photo,
-          record.house_photo,
-          record.sync_status || 'PENDING',
-          record.created_by,
-          record.modified_by,
-        ];
+            record.survey_id || 'CI-2025-006',
+            record.CONSUMER_ID_M,
+            record.STATUS,
+            record.DISCOM_M,
+            record.ZONE_NAME_WITH_CODE_M,
+            record.CIRCLE_NAME_WITH_CODE_M,
+            record.DIVISION_NAME_WITH_CODE_M,
+            record.SUB_DIVISION_NAME_WITH_CODE_M,
+            record.CONSUMER_NAME_M,
+            record.FATHER_HUSBAND_PROPRITEOR_NAME_M,
+            record.SANCTIONED_LOAD_M,
+            record.CONSUMER_ADDRESS_M,
+            record.REGISTERED_MOBILE_NO_AS_PER_RMS_M,
+            record.SUB_STATION_CODE_M,
+            record.SUB_STATION_NAME_M,
+            record.FEEDER_CODE_M,
+            record.FEEDER_NAME_M,
+            record.DTR_CODE_M,
+            record.DTR_NAME_M,
+            record.CATEGORY_IN_MASTER_DATA_M,
+            record.SUB_CATEGORY_CODE_M,
+            record.OLD_METER_SERIAL_NUMBER_M,
+            record.OLD_METER_PHASE_M,
+            record.OLD_MF_M,
+            record.BILLING_TYPE_M,
+            record.LATITUDE_M,
+            record.LONGITUDE_M,
+            record.OLD_METER_BADGE_NUMBER_M,
+            record.METER_MAKE_M,
+            record.CONNECTED_LOAD_M,
+            record.OLD_CONS_NO_M,
+            record.READING_DIGITS_M,
+            record.TDC_FLAG_M,
+            record.MAXIMUM_DEMAND_M,
+            record.METER_READING_SEQUENCE_M,
+            record.EMAIL_M,
+            record.consumer_name,
+            record.account_number,
+            record.address,
+            record.contact_number,
+            record.meter_serial_number,
+            record.meter_type,
+            record.sanctioned_load,
+            record.feeder_code,
+            record.dt_code,
+            record.pole_number,
+            record.latitude,
+            record.longitude,
+            record.remarks,
+            record.email,
+            record.pole_photo,
+            record.old_meter_photo,
+            record.old_meter_kwh_photo,
+            record.house_photo,
+            'PENDING', // sync_status
+            record.created_by,
+            record.modified_by,
+          ];
       } else {
         // Fallback for older schema without new columns
         insertSQL = `INSERT OR REPLACE INTO consumer_indexing 
@@ -1798,6 +1800,57 @@ sim2CellId TEXT,
       return result || [];
     } catch (error) {
       console.error('Get images for consumer failed:', error);
+      return [];
+    }
+  }
+
+  // Get unique DTR data with coordinates for GIS
+  async getDtrData() {
+    try {
+      // Fetch potential DTR identifiers and coordinates from both legacy (*_M) and camelCase columns
+      const rows = await this.db.getAllAsync(
+        `SELECT 
+           DTR_CODE_M, DTR_NAME_M, LATITUDE_M, LONGITUDE_M,
+           dtrCode, dtrName, latitude, longitude
+         FROM consumer_indexing
+         WHERE (DTR_CODE_M IS NOT NULL AND DTR_CODE_M <> '')
+            OR (dtrCode IS NOT NULL AND dtrCode <> '')`
+      );
+
+      const byCode = new Map();
+      for (const r of rows) {
+        const code = r.DTR_CODE_M || r.dtrCode;
+        const name = r.DTR_NAME_M || r.dtrName || '';
+        const lat = r.LATITUDE_M ?? r.latitude;
+        const lon = r.LONGITUDE_M ?? r.longitude;
+
+        if (!code) continue;
+
+        // Prefer entries which have valid coordinates
+        const hasCoords = lat != null && lon != null;
+        if (!byCode.has(code)) {
+          byCode.set(code, {
+            dtr_code: code,
+            dtr_name: name,
+            latitude: hasCoords ? String(lat) : null,
+            longitude: hasCoords ? String(lon) : null,
+          });
+        } else if (hasCoords) {
+          // Upgrade existing entry with coordinates if missing
+          const existing = byCode.get(code);
+          if (existing.latitude == null || existing.longitude == null) {
+            existing.latitude = String(lat);
+            existing.longitude = String(lon);
+          }
+          if (!existing.dtr_name && name) {
+            existing.dtr_name = name;
+          }
+        }
+      }
+
+      return Array.from(byCode.values());
+    } catch (error) {
+      console.error('Get DTR data failed:', error);
       return [];
     }
   }

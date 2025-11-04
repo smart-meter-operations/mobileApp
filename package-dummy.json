@@ -1,0 +1,18 @@
+{
+  "name": "dummy-image-upload-server",
+  "version": "1.0.0",
+  "description": "Dummy server for testing image upload functionality",
+  "main": "dummy-server.js",
+  "scripts": {
+    "start": "node dummy-server.js",
+    "dev": "node dummy-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1"
+  },
+  "keywords": ["dummy", "test", "image-upload", "cors", "frappe"],
+  "author": "WATTLY Team",
+  "license": "MIT"
+}
